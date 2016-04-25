@@ -1,19 +1,75 @@
 #pragma once
-/**
- * Graph class
- */
-class Graph
+namespace Graph
 {
-private:
-
-public:
 	/**
-	 * Default constructor
+	 * Class for template specialization
 	 */
-	Graph();
-	/**
-	 * Destructor
-	 */
-	~Graph();
-};
+	class Unweight {};
 
+	/**
+	* Graph class
+	*/
+	template<typename V, typename E = Unweight>
+	class Graph
+	{
+	private:
+		bool directed; //for now, may switch for enum
+	public:
+		/**
+		* Default constructor
+		*/
+		Graph() :directed(true)
+		{
+
+		}
+
+		/**
+		 * Orientation constructor
+		 * @param directed true for directed, false undirected
+		 */
+		Graph(bool directed) :directed(directed)
+		{
+
+		}
+
+		/**
+		* Destructor
+		*/
+		~Graph()
+		{
+		}
+	};
+
+	/**
+	 * Graph class specialization
+	 */
+	template<typename U>
+	class Graph<U, Unweight>
+	{
+		bool directed;
+	public:
+		/**
+		* Default constructor
+		*/
+		Graph() :directed(true)
+		{
+
+		}
+
+		/**
+		* Orientation constructor
+		* @param directed true for directed, false undirected
+		*/
+		Graph(bool directed) :directed(directed)
+		{
+
+		}
+
+		/**
+		* Destructor
+		*/
+		~Graph()
+		{
+		}
+	};
+}
