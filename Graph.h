@@ -27,11 +27,14 @@ namespace Graph
 	public://change to private later, just makes it easier to code, cause IDE suggestions
 		friend class AbstractGraph<V,E>;
 		friend class Graph<V,E>;
+		long id;
 		V value;
-		std::map<Vertex<V, E>, E> edgesFrom;
-	public:
+		std::map<long, E> edgesTo;
 		Vertex() {}
-		Vertex(V value) :value(value) {}
+		Vertex(long id, V value) :id(id), value(value) {}
+	public:
+		long getId() { return id; }
+		V getValue() { return value; }
 	};
 
 	/**
@@ -44,7 +47,7 @@ namespace Graph
 		bool directed;
 		using vertexMap = std::map<long, Vertex<V, E> >;
 		vertexMap vertices;
-		long id = 0;
+		long total_id = 0;
 	public:
 		/**
 		* Default constructor
@@ -70,11 +73,11 @@ namespace Graph
 		* @param value value
 		* @return iterator to inserted vertex
 		*/
-		typename vertexMap::iterator addVertex(Vertex<V,E> & vertex)
+		long addVertex(Vertex<V,E> & vertex)
 		{
-			std::pair<vertexMap::iterator, bool> toReturn = vertices.insert(std::pair<long, Vertex<V, E> > (id, vertex));
-			id++;
-			return toReturn.first;
+			std::pair<vertexMap::iterator, bool> toReturn = vertices.insert(std::pair<long, Vertex<V, E> > (total_id, vertex));
+			total_id++;
+			return toReturn.first->first;
 		}
 
 		/**
@@ -82,11 +85,11 @@ namespace Graph
 		* @param value value
 		* @return iterator to inserted vertex
 		*/
-		typename vertexMap::iterator addVertex(Vertex<V, E> && vertex)
+		long addVertex(Vertex<V, E> && vertex)
 		{
-			std::pair<vertexMap::iterator, bool> toReturn = vertices.insert(std::pair<long, Vertex<V, E> >(id, std::move(vertex)));
-			id++;
-			return toReturn.first;
+			std::pair<vertexMap::iterator, bool> toReturn = vertices.insert(std::pair<long, Vertex<V, E> >(total_id, std::move(vertex)));
+			total_id++;
+			return toReturn.first->first;
 		}
 
 		/** 
@@ -94,9 +97,9 @@ namespace Graph
 		 * @param value value
 		 * @return iterator to inserted vertex
 		 */
-		typename vertexMap::iterator addVertex(V & value)
+		long addVertex(V & value)
 		{
-			Vertex<V,E> v(value);
+			Vertex<V,E> v(total_id, value);
 			return addVertex(v);
 		}
 
@@ -105,19 +108,67 @@ namespace Graph
 		* @param value value
 		* @return iterator to inserted vertex
 		*/
-		typename vertexMap::iterator addVertex(V && value)
+		long addVertex(V && value)
 		{
-			Vertex<V, E> v(std::move(value));
+			Vertex<V, E> v(total_id, std::move(value));
 			return addVertex(v);
 		}
 
+		/**
+		* Get map of vertices containing, where key = id, value = value stored in vertex
+		* @return map of vertices
+		*/
+		const vertexMap & getVertices() const
+		{
+			return vertices;
+		}
+
+		/**
+		* Remove vertex and all edges adjacent to it
+		* @param vertex id of vertex to remove
+		* @return number vertices removed - at most 1
+		*/
+		size_t removeVertex(const long & vertex)
+		{
+			for (auto & i : vertices)
+			{
+				i.second.edgesTo.erase(vertex);
+			}
+			return vertices.erase(vertex);
+		}
+
+		/**
+		* Remove edge
+		* @param from vertex from
+		* @param to vertex to
+		* @return number edges removed - at most 1
+		*/
+		size_t removeEdge(const long & from, const long & to)
+		{
+			return vertices[from].edgesTo.erase(to);
+		}
+
 		//todelete
-		std::string listvertices()
+		std::string listvertices() const
 		{
 			std::stringstream ss;
-			for (auto m : vertices)
+			for (auto & m : vertices)
 			{
-				ss << m.second.value << " ";
+				ss << m.second.id + 1 << "." << m.second.value << " ";
+			}
+			return ss.str();
+		}
+
+		//todelete
+		std::string listedges()
+		{
+			std::stringstream ss;
+			for (auto & m : vertices)
+			{
+				for (auto & n : m.second.edgesTo)
+				{
+					ss << "Edge from " << m.second.value << " to " << vertices[n.first].value << " with value " << n.second <<"\n";
+				}
 			}
 			return ss.str();
 		}
@@ -149,13 +200,39 @@ namespace Graph
 		*/
 		virtual ~Graph()
 		{}
+
+		/**
+		* Add edge by value reference
+		* @param from vertex from edge is leaving, must be in graph
+		* @param to vertex to edge is coming, must be in graph
+		* @param value value of edge
+		* @return nothing
+		*/
+		void addEdge(const long & from, const long & to, E & value)
+		{
+			vertices[from].edgesTo.insert(std::pair<long, E>(to, value));
+			if(!directed) vertices[to].edgesTo.insert(std::pair<long, E>(from, value));
+		}
+
+		/**
+		* Add edge by moving value
+		* @param from vertex from edge is leaving, must be in graph
+		* @param to vertex to edge is coming, must be in graph
+		* @param value value of edge
+		* @return nothing
+		*/
+		void addEdge(const long & from, const long & to, E && value)
+		{
+			vertices[from].edgesTo.insert(std::pair<long, E>(to, std::move(value)));
+			if (!directed) vertices[to].edgesTo.insert(std::pair<long, E>(from, std::move(value)));
+		}
 	};
 
 	/**
 	 * Graph class specialization
 	 */
-	template<typename U>
-	class Graph<U, Unweight> : public AbstractGraph<U, Unweight>
+	template<typename V>
+	class Graph<V, Unweight> : public AbstractGraph<V, Unweight>
 	{
 	public:
 		/**
@@ -176,5 +253,18 @@ namespace Graph
 		*/
 		virtual ~Graph()
 		{}
+
+		/**
+		* Add edge by value reference
+		* @param from vertex from edge is leaving, must be in graph
+		* @param to vertex to edge is coming, must be in graph
+		* @return nothing
+		*/
+		void addEdge(const long & from, const long & to)
+		{
+			Unweight u;
+			vertices[from].edgesTo.insert(std::pair(to, u));
+			if (!directed) vertices[to].edgesTo.insert(std::pair<long, Unweight>(from, u));
+		}
 	};
 }
