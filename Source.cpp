@@ -31,5 +31,12 @@ int main()
 	graph.removeVertex(breclav.getId());
     cout << graph.listedges();*/
 
+    auto vals = graph.getVerticesValues();
+
+    for(auto& val : vals)
+    {
+        std::cout << (val.first + 1) << ". " << val.second << std::endl;
+    }
+
 	return 0;
 }
