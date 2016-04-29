@@ -29,6 +29,7 @@ int main()
 	cout << graph.listedges();
 	cout << "removing breclav" << endl;
 	graph.removeVertex(breclav.getId());
-	cout << graph.listedges();
+    cout << graph.listedges();
+
 	return 0;
 }

@@ -9,7 +9,16 @@ namespace Graph
 	/**
 	 * Class for template specialization
 	 */
-	class Unweight {};
+    class Unweight
+    {
+    private:
+        // NOTE ctor moved to private and Graph classes made friend so this class could be instantiated only by graph
+        //      and not everywhere => gives another "hint" to possible user that this class has no "meaning"
+        Unweight();
+    public:
+        template<typename V, typename E>
+        friend class Graph;
+    };
 
     /**
      * Classes declarations
@@ -32,14 +41,14 @@ namespace Graph
 	public://change to private later, just makes it easier to code, cause IDE suggestions
 		friend class AbstractGraph<V,E>;
 		friend class Graph<V,E>;
-		long id;
-		V value;
+        long id;    // NOTE id might be size_t later as negative values are probably not needed?
+        V value;    // NOTE What about non-default constructible items?
 		std::map<long, E> edgesTo;
 		Vertex() {}
 		Vertex(long id, V value) :id(id), value(value) {}
 	public:
-		long getId() { return id; }
-		V getValue() { return value; }
+        long getId() const { return id; }           // NOTE const qualifier added + returning value by const ref to prevent copying
+        const V& getValue() const { return value; }
 	};
 
 	/**
@@ -49,11 +58,12 @@ namespace Graph
 	class AbstractGraph
 	{
 	protected:
-		bool directed;
-		using vertexMap = std::map<long, Vertex<V, E> >;
+        using vertexMap = std::map<long, Vertex<V, E> >;
+
+        bool directed;
 		vertexMap vertices;
 		long total_id = 0;
-	public:
+
 		/**
 		* Default constructor
 		*/
@@ -72,7 +82,7 @@ namespace Graph
 		*/
 		virtual ~AbstractGraph()
 		{}
-
+    public:         // NOTE Ctors + dtor moved to protected to make it really abstract
 		/**
 		* Add vertex
         * @param value value to be inserted
@@ -190,7 +200,7 @@ namespace Graph
 		/**
 		* Default constructor
 		*/
-        Graph() : AbstractGraph<V,E>()          // In clang, referencing to AbstractGraph using only name does not work (needs template params also)
+        Graph() : AbstractGraph<V,E>()          // NOTE In clang, referencing to AbstractGraph using only name does not work (needs template params also)
 		{}
 
 		/**
@@ -215,7 +225,7 @@ namespace Graph
 		*/
         void addEdge(long from, long to, const E & value)
 		{
-            this->vertices[from].edgesTo.insert(std::pair<long, E>(to, value));     // "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
+            this->vertices[from].edgesTo.insert(std::pair<long, E>(to, value));     // NOTE "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
             if(!(this->directed))
             {
                 this->vertices[to].edgesTo.insert(std::pair<long, E>(from, value));
