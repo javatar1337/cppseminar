@@ -37,32 +37,31 @@ namespace Graph
 	class Graph<U, Unweight>;
 
 	/**
-	* Vertex class
-	*/
-	template<typename V, typename E>
-	class Vertex
-	{
-	public://change to private later, just makes it easier to code, cause IDE suggestions
-		friend class AbstractGraph<V,E>;
-		friend class Graph<V,E>;
-        long id;    // NOTE id might be size_t later as negative values are probably not needed?
-        V value;    // NOTE What about non-default constructible items?
-		std::map<long, E> edgesTo;
-		Vertex() {}
-		Vertex(long id, V value) :id(id), value(value) {}
-	public:
-        long getId() const { return id; }           // NOTE const qualifier added + returning value by const ref to prevent copying
-        const V& getValue() const { return value; }
-	};
-
-	/**
 	 * Abstract Graph class
 	 */
 	template<typename V, typename E>
 	class AbstractGraph
 	{
 	protected:
-        using vertexMap = std::map<long, Vertex<V, E> >;
+        /**
+        * Vertex class
+        */
+        class Vertex
+        {
+        public://change to private later, just makes it easier to code, cause IDE suggestions
+            friend class AbstractGraph<V,E>;
+            friend class Graph<V,E>;
+            long id;    // NOTE id might be size_t later as negative values are probably not needed?
+            V value;    // NOTE What about non-default constructible items?
+            std::map<long, E> edgesTo;
+            Vertex() {}
+            Vertex(long id, V value) :id(id), value(value) {}
+        public:
+            long getId() const { return id; }           // NOTE const qualifier added + returning value by const ref to prevent copying
+            const V& getValue() const { return value; }
+        };
+
+        using vertexMap = std::map<long, Vertex >;
 
         bool directed;
 		vertexMap vertices;
@@ -92,9 +91,9 @@ namespace Graph
         * @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
-        long addVertex(const Vertex<V,E> & vertex)
+        long addVertex(const Vertex& vertex)
 		{
-            auto toReturn = vertices.insert(std::pair<long, Vertex<V, E> > (total_id, vertex));
+            auto toReturn = vertices.insert(std::pair<long, Vertex> (total_id, vertex));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -104,9 +103,9 @@ namespace Graph
         * @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
-		long addVertex(Vertex<V, E> && vertex)
+        long addVertex(Vertex && vertex)
 		{
-            auto toReturn = vertices.insert(std::pair<long, Vertex<V, E> >(total_id, std::move(vertex)));
+            auto toReturn = vertices.insert(std::pair<long, Vertex >(total_id, std::move(vertex)));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -118,7 +117,7 @@ namespace Graph
 		 */
         long addVertex(const V & value)
 		{
-			Vertex<V,E> v(total_id, value);
+            Vertex v(total_id, value);
 			return addVertex(v);
 		}
 
@@ -129,7 +128,7 @@ namespace Graph
 		*/
 		long addVertex(V && value)
 		{
-			Vertex<V, E> v(total_id, std::move(value));
+            Vertex v(total_id, std::move(value));
 			return addVertex(v);
 		}
 
