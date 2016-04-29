@@ -27,7 +27,7 @@ int main()
 	graph.addEdge(breclav.getId(), praha, 100);
 	graph.addEdge(praha, breclav.getId(), 120);
 	cout << graph.listedges();
-	cout << "removing breclav" << endl;
+    cout << "removing Breclav" << endl;
 	graph.removeVertex(breclav.getId());
     cout << graph.listedges();
 
