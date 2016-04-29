@@ -11,10 +11,15 @@ namespace Graph
 	 */
 	class Unweight {};
 
+    /**
+     * Classes declarations
+     */
 	template<typename V, typename E>
 	class AbstractGraph;
+
 	template<typename V, typename E = Unweight>
 	class Graph;
+
 	template<typename U>
 	class Graph<U, Unweight>;
 
@@ -70,34 +75,34 @@ namespace Graph
 
 		/**
 		* Add vertex
-		* @param value value
+        * @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
-		long addVertex(Vertex<V,E> & vertex)
+        long addVertex(const Vertex<V,E> & vertex)
 		{
-			std::pair<vertexMap::iterator, bool> toReturn = vertices.insert(std::pair<long, Vertex<V, E> > (total_id, vertex));
+            auto toReturn = vertices.insert(std::pair<long, Vertex<V, E> > (total_id, vertex));
 			total_id++;
 			return toReturn.first->first;
 		}
 
 		/**
 		* Add and move vertex 
-		* @param value value
+        * @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
 		long addVertex(Vertex<V, E> && vertex)
 		{
-			std::pair<vertexMap::iterator, bool> toReturn = vertices.insert(std::pair<long, Vertex<V, E> >(total_id, std::move(vertex)));
+            auto toReturn = vertices.insert(std::pair<long, Vertex<V, E> >(total_id, std::move(vertex)));
 			total_id++;
 			return toReturn.first->first;
 		}
 
 		/** 
 		 * Add vertex by value reference
-		 * @param value value
+         * @param value value to be inserted
 		 * @return iterator to inserted vertex
 		 */
-		long addVertex(V & value)
+        long addVertex(const V & value)
 		{
 			Vertex<V,E> v(total_id, value);
 			return addVertex(v);
@@ -105,7 +110,7 @@ namespace Graph
 
 		/**
 		* Add vertex by moving value
-		* @param value value
+        * @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
 		long addVertex(V && value)
@@ -128,7 +133,7 @@ namespace Graph
 		* @param vertex id of vertex to remove
 		* @return number vertices removed - at most 1
 		*/
-		size_t removeVertex(const long & vertex)
+        size_t removeVertex(long vertex)
 		{
 			for (auto & i : vertices)
 			{
@@ -143,7 +148,7 @@ namespace Graph
 		* @param to vertex to
 		* @return number edges removed - at most 1
 		*/
-		size_t removeEdge(const long & from, const long & to)
+        size_t removeEdge(long from, long to)
 		{
 			return vertices[from].edgesTo.erase(to);
 		}
@@ -185,14 +190,14 @@ namespace Graph
 		/**
 		* Default constructor
 		*/
-		Graph() : AbstractGraph()
+        Graph() : AbstractGraph<V,E>()          // In clang, referencing to AbstractGraph using only name does not work (needs template params also)
 		{}
 
 		/**
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		Graph(bool directed) :AbstractGraph(directed)
+        Graph(bool directed) :AbstractGraph<V,E>(directed)
 		{}
 
 		/**
@@ -208,10 +213,13 @@ namespace Graph
 		* @param value value of edge
 		* @return nothing
 		*/
-		void addEdge(const long & from, const long & to, E & value)
+        void addEdge(long from, long to, const E & value)
 		{
-			vertices[from].edgesTo.insert(std::pair<long, E>(to, value));
-			if(!directed) vertices[to].edgesTo.insert(std::pair<long, E>(from, value));
+            this->vertices[from].edgesTo.insert(std::pair<long, E>(to, value));     // "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
+            if(!(this->directed))
+            {
+                this->vertices[to].edgesTo.insert(std::pair<long, E>(from, value));
+            }
 		}
 
 		/**
@@ -221,10 +229,13 @@ namespace Graph
 		* @param value value of edge
 		* @return nothing
 		*/
-		void addEdge(const long & from, const long & to, E && value)
+        void addEdge(long from, long to, E && value)
 		{
-			vertices[from].edgesTo.insert(std::pair<long, E>(to, std::move(value)));
-			if (!directed) vertices[to].edgesTo.insert(std::pair<long, E>(from, std::move(value)));
+            this->vertices[from].edgesTo.insert(std::pair<long, E>(to, std::move(value)));
+            if (!(this->directed))
+            {
+                this->vertices[to].edgesTo.insert(std::pair<long, E>(from, std::move(value)));
+            }
 		}
 	};
 
@@ -238,14 +249,14 @@ namespace Graph
 		/**
 		* Default constructor
 		*/
-		Graph() : AbstractGraph()
+        Graph() : AbstractGraph<V, Unweight>()
 		{}
 
 		/**
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		Graph(bool directed) :AbstractGraph(directed)
+        Graph(bool directed) :AbstractGraph<V, Unweight>(directed)
 		{}
 
 		/**
@@ -260,11 +271,14 @@ namespace Graph
 		* @param to vertex to edge is coming, must be in graph
 		* @return nothing
 		*/
-		void addEdge(const long & from, const long & to)
+        void addEdge(long from, long to)
 		{
 			Unweight u;
-			vertices[from].edgesTo.insert(std::pair(to, u));
-			if (!directed) vertices[to].edgesTo.insert(std::pair<long, Unweight>(from, u));
+            this->vertices[from].edgesTo.insert(std::make_pair(to, u));
+            if (!(this->directed))
+            {
+                this->vertices[to].edgesTo.insert(std::pair<long, Unweight>(from, u));
+            }
 		}
 	};
 }
