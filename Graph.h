@@ -4,6 +4,10 @@
 #include <string>
 #include <sstream>
 
+#ifndef GRAPH_DEBUG
+#define GRAPH_DEBUG
+#endif
+
 namespace Graph
 {
 	/**
@@ -163,7 +167,7 @@ namespace Graph
 			return vertices[from].edgesTo.erase(to);
 		}
 
-		//todelete
+        #ifdef GRAPH_DEBUG
 		std::string listvertices() const
 		{
 			std::stringstream ss;
@@ -174,8 +178,7 @@ namespace Graph
 			return ss.str();
 		}
 
-		//todelete
-		std::string listedges()
+        std::string listedges()
 		{
 			std::stringstream ss;
 			for (auto & m : vertices)
@@ -187,6 +190,7 @@ namespace Graph
 			}
 			return ss.str();
 		}
+        #endif
 	};
 
 
@@ -292,3 +296,5 @@ namespace Graph
 		}
 	};
 }
+
+#undef GRAPH_DEBUG
