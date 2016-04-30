@@ -162,7 +162,8 @@ namespace Graph
 		const V& getVertexValue(size_t vertex) const
 		{
 			auto is_in = vertices.find(vertex);
-			if (is_in == vertices.end()) {
+			if (is_in == vertices.end())
+			{
 				throw std::invalid_argument("vertex id not found");
 			}
 			return vertices.find(vertex)->second.getValue();
@@ -290,6 +291,11 @@ namespace Graph
 	template<typename V, typename E>
 	class Graph : public AbstractGraph<V,E>
 	{
+	private:
+		// As vars derived from AbstractGraph have dependent names,
+		// usings are utilized here to avoid writing this->... every time
+		using AbstractGraph<V,E>::vertices;
+		using AbstractGraph<V,E>::directed;
 	public:
 		/**
 		* Orientation constructor
@@ -313,10 +319,10 @@ namespace Graph
 		*/
 		void addEdge(size_t from, size_t to, const E & value)
 		{
-			this->vertices.find(from)->second.outgoingEdges.insert({to, value});     // NOTE "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
-			if(!(this->directed))
+			vertices.find(from)->second.outgoingEdges.insert({to, value});
+			if(!directed)
 			{
-				this->vertices.find(to)->second.outgoingEdges.insert({from, value});
+				vertices.find(to)->second.outgoingEdges.insert({from, value});
 			}
 		}
 
@@ -331,13 +337,14 @@ namespace Graph
 		{
 			auto is_in_from = vertices.find(from);
 			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end() || is_in_to == vertices.end()) {
+			if (is_in_from == vertices.end() || is_in_to == vertices.end())
+			{
 				return;
 			}
-			this->vertices.find(from)->second.outgoingEdges.insert({to, std::move(value)});
-			if (!(this->directed))
+			vertices.find(from)->second.outgoingEdges.insert({to, std::move(value)});
+			if (!directed)
 			{
-				this->vertices.find(to)->second.outgoingEdges.insert({from, std::move(value)});
+				vertices.find(to)->second.outgoingEdges.insert({from, std::move(value)});
 			}
 		}
 
@@ -352,13 +359,15 @@ namespace Graph
 		{
 			auto is_in_from = vertices.find(from);
 			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end()) {
+			if (is_in_from == vertices.end())
+			{
 				throw std::invalid_argument("\"from\" vertex id not found");
 			}
-			if (is_in_to == vertices.end()) {
+			if (is_in_to == vertices.end())
+			{
 				throw std::invalid_argument("\"to\" vertex id not found");
 			}
-			return this->vertices.find(from)->second.outgoingEdges.find(to)->second;
+			return vertices.find(from)->second.outgoingEdges.find(to)->second;
 		}
 	};
 
@@ -368,6 +377,9 @@ namespace Graph
 	template<typename V>
 	class Graph<V, Unweight> : public AbstractGraph<V, Unweight>
 	{
+	private:
+		using AbstractGraph<V,Unweight>::vertices;
+		using AbstractGraph<V,Unweight>::directed;
 	public:
 		/**
 		* Orientation constructor
@@ -393,13 +405,14 @@ namespace Graph
 			Unweight u;
 			auto is_in_from = vertices.find(from);
 			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end() || is_in_to == vertices.end()) {
+			if (is_in_from == vertices.end() || is_in_to == vertices.end())
+			{
 				return;
 			}
-			this->vertices.find(from)->second.outgoingEdges.insert({to, u});
-			if (!(this->directed))
+			vertices.find(from)->second.outgoingEdges.insert({to, u});
+			if (!directed)
 			{
-				this->vertices.find(to)->second.outgoingEdges.insert({from, u});
+				vertices.find(to)->second.outgoingEdges.insert({from, u});
 			}
 		}
 	};
