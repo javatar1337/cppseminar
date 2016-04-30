@@ -132,17 +132,9 @@ namespace Graph
 		}
 
 		/**
-		* Get map of vertices containing, where key = id, value = value stored in vertex
-		* @return map of vertices
+		* @brief Get pair of <id, value> of vertices
+		* @return vector of pairs containing id and value of given vertex
 		*/
-		const vertexMap & getVertices() const   // NOTE check getVerticesValues() comment
-		{
-			return vertices;
-		}
-
-		// NOTE By returning values and not vertices (and user probably wants values), we can keep
-		//      implementation of vertex class internal (and so it could be protected and nested)
-		//      Similar behaviour as listvertices() method
 		std::vector<std::pair<size_t, V>> getVerticesValues() const
 		{
 			std::vector<std::pair<size_t, V>> result;
@@ -151,6 +143,16 @@ namespace Graph
 				result.push_back({ vert.first, vert.second.getValue() });
 			}
 			return result;
+		}
+
+		/**
+		 * @brief Get value of given vertex
+		 * @param vertex id of vertex
+		 * @return value of this vertex
+		 */
+		const V& getVertexValue(size_t vertex) const
+		{
+			return vertices.find(vertex)->second.getValue();
 		}
 
 		/**
@@ -256,10 +258,18 @@ namespace Graph
 				this->vertices.find(to)->second.edgesTo.insert({from, std::move(value)});
 			}
 		}
+
+		// NOTE It seems that all addEdge, listedges, .. methods are reversed
+		// E.g. addEdge(from, to) - we find "from edge" and add "to edge" to their "edgesTo"
+		// but it probably should be in pseudocode: vertices.find(to).edgesTo.insert(from)
+		const E& getEdgeValue(size_t from, size_t to)
+		{
+			return this->vertices.find(from)->second.edgesTo.find(to)->second;
+		}
 	};
 
 	/**
-	 * Graph class specialization
+	 * Graph class specialization for unweighted graphs
 	 */
 	template<typename V>
 	class Graph<V, Unweight> : public AbstractGraph<V, Unweight>

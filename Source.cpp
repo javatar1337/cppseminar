@@ -28,7 +28,7 @@ int main()
 	auto brno = graph.addVertex(a);
 	auto praha = graph.addVertex("Praha");
 	graph.addVertex("Breclav");
-	auto all = graph.getVertices();
+	//auto all = graph.getVertices();
 	/*Graph::Vertex<std::string, int> breclav;
 	for (auto & i : all) {
 		if (i.second.getValue() != "Brno" && i.second.getValue() != "Praha") breclav = i.second;
@@ -49,6 +49,8 @@ int main()
 	graph.removeVertex(breclav.getId());
 	cout << graph.listedges();*/
 
+	std::cout << "Edge value from Praha to Brno: " << graph.getEdgeValue(praha, brno) << std::endl;
+
 	auto vals = graph.getVerticesValues();
 
 	for(auto& val : vals)
@@ -63,7 +65,7 @@ int main()
 	// Ĺater we will need to check if index exist etc
 	Graph::Graph<Destroyer> destroyerGraph(false);
 	auto d4 = destroyerGraph.addVertex(Destroyer(4));
-	destroyerGraph.addVertex(Destroyer(2));
+	auto d2 = destroyerGraph.addVertex(Destroyer(2));
 
 	auto destVals = destroyerGraph.getVerticesValues();
 
@@ -77,6 +79,8 @@ int main()
 	destroyerGraph.removeVertex(d4);
 
 	std::cout << std::endl << destroyerGraph.listvertices() << std::endl;
+
+	std::cout << "Destroyer(2) value: " << destroyerGraph.getVertexValue(d2) << std::endl;
 
 	return 0;
 }
