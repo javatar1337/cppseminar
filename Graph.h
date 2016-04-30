@@ -52,7 +52,7 @@ namespace Graph
 			friend class Graph<V,E>;
 			size_t id;
 			V value;
-			std::map<size_t, E> edgesTo;
+			std::map<size_t, E> outgoingEdges;
 			//Vertex() {}  NOTE read comment at Source.cpp line 59
 			Vertex(size_t id, V value) :id(id), value(value) {}
 		public:
@@ -148,10 +148,15 @@ namespace Graph
 		/**
 		 * @brief Get value of given vertex
 		 * @param vertex id of vertex
+		 * @throws invalid_argument exception if id is invalid
 		 * @return value of this vertex
 		 */
 		const V& getVertexValue(size_t vertex) const
 		{
+			auto is_in = vertices.find(vertex);
+			if (is_in == vertices.end()) {
+				throw std::invalid_argument("vertex id not found");
+			}
 			return vertices.find(vertex)->second.getValue();
 		}
 
@@ -164,7 +169,7 @@ namespace Graph
 		{
 			for (auto & i : vertices)
 			{
-				i.second.edgesTo.erase(vertex);
+				i.second.outgoingEdges.erase(vertex);
 			}
 			return vertices.erase(vertex);
 		}
@@ -177,7 +182,7 @@ namespace Graph
 		*/
 		size_t removeEdge(size_t from, size_t to)
 		{
-			return vertices.find(from)->second.edgesTo.erase(to);
+			return vertices.find(from)->second.outgoingEdges.erase(to);
 		}
 
 #ifdef GRAPH_DEBUG
@@ -196,7 +201,7 @@ namespace Graph
 			std::stringstream ss;
 			for (auto & m : vertices)
 			{
-				for (auto & n : m.second.edgesTo)
+				for (auto & n : m.second.outgoingEdges)
 				{
 					ss << "Edge from " << m.second.value << " to " << vertices.find(n.first)->second.value << " with value " << n.second <<"\n";
 				}
@@ -236,10 +241,10 @@ namespace Graph
 		*/
 		void addEdge(size_t from, size_t to, const E & value)
 		{
-			this->vertices.find(from)->second.edgesTo.insert({to, value});     // NOTE "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
+			this->vertices.find(from)->second.outgoingEdges.insert({to, value});     // NOTE "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
 			if(!(this->directed))
 			{
-				this->vertices.find(to)->second.edgesTo.insert({from, value});
+				this->vertices.find(to)->second.outgoingEdges.insert({from, value});
 			}
 		}
 
@@ -252,19 +257,35 @@ namespace Graph
 		*/
 		void addEdge(size_t from, size_t to, E && value)
 		{
-			this->vertices.find(from)->second.edgesTo.insert({to, std::move(value)});
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end() || is_in_to == vertices.end()) {
+				return;
+			}
+			this->vertices.find(from)->second.outgoingEdges.insert({to, std::move(value)});
 			if (!(this->directed))
 			{
-				this->vertices.find(to)->second.edgesTo.insert({from, std::move(value)});
+				this->vertices.find(to)->second.outgoingEdges.insert({from, std::move(value)});
 			}
 		}
 
-		// NOTE It seems that all addEdge, listedges, .. methods are reversed
-		// E.g. addEdge(from, to) - we find "from edge" and add "to edge" to their "edgesTo"
-		// but it probably should be in pseudocode: vertices.find(to).edgesTo.insert(from)
+		/**
+		* Get value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @return value of edge
+		*/
 		const E& getEdgeValue(size_t from, size_t to)
 		{
-			return this->vertices.find(from)->second.edgesTo.find(to)->second;
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end()) {
+				throw std::invalid_argument("\"from\" vertex id not found");
+			}
+			if (is_in_to == vertices.end()) {
+				throw std::invalid_argument("\"to\" vertex id not found");
+			}
+			return this->vertices.find(from)->second.outgoingEdges.find(to)->second;
 		}
 	};
 
@@ -297,10 +318,15 @@ namespace Graph
 		void addEdge(size_t from, size_t to)
 		{
 			Unweight u;
-			this->vertices.find(from)->second.edgesTo.insert({to, u});
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end() || is_in_to == vertices.end()) {
+				return;
+			}
+			this->vertices.find(from)->second.outgoingEdges.insert({to, u});
 			if (!(this->directed))
 			{
-				this->vertices.find(to)->second.edgesTo.insert({from, u});
+				this->vertices.find(to)->second.outgoingEdges.insert({from, u});
 			}
 		}
 	};
