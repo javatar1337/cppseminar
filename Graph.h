@@ -50,13 +50,13 @@ namespace Graph
 		public:     // TODO change to private later, just makes it easier to code, cause IDE suggestions
 			friend class AbstractGraph<V,E>;
 			friend class Graph<V,E>;
-			long id;    // NOTE id might be size_t later as negative values are probably not needed?
-			V value;    // NOTE What about non-default constructible items?
-			std::map<long, E> edgesTo;
-			Vertex() {}
-			Vertex(long id, V value) :id(id), value(value) {}
+			size_t id;
+			V value;
+			std::map<size_t, E> edgesTo;
+			//Vertex() {}  NOTE read comment at Source.cpp line 59
+			Vertex(size_t id, V value) :id(id), value(value) {}
 		public:
-			long getId() const
+			size_t getId() const
 			{
 				return id;
 			}
@@ -66,11 +66,11 @@ namespace Graph
 			}
 		};
 
-		using vertexMap = std::map<long, Vertex >;
+		using vertexMap = std::map<size_t, Vertex >;
 
 		bool directed;
 		vertexMap vertices;
-		long total_id = 0;
+		size_t total_id = 0;
 
 		/**
 		* Orientation constructor
@@ -90,9 +90,9 @@ namespace Graph
 		* @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
-		long addVertex(const Vertex& vertex)
+		size_t addVertex(const Vertex& vertex)
 		{
-			auto toReturn = vertices.insert(std::pair<long, Vertex> (total_id, vertex));
+			auto toReturn = vertices.insert(std::pair<size_t, Vertex> (total_id, vertex));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -102,9 +102,9 @@ namespace Graph
 		* @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
-		long addVertex(Vertex && vertex)
+		size_t addVertex(Vertex && vertex)
 		{
-			auto toReturn = vertices.insert(std::pair<long, Vertex >(total_id, std::move(vertex)));
+			auto toReturn = vertices.insert(std::pair<size_t, Vertex >(total_id, std::move(vertex)));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -114,7 +114,7 @@ namespace Graph
 		 * @param value value to be inserted
 		 * @return iterator to inserted vertex
 		 */
-		long addVertex(const V & value)
+		size_t addVertex(const V & value)
 		{
 			Vertex v(total_id, value);
 			return addVertex(v);
@@ -125,7 +125,7 @@ namespace Graph
 		* @param value value to be inserted
 		* @return iterator to inserted vertex
 		*/
-		long addVertex(V && value)
+		size_t addVertex(V && value)
 		{
 			Vertex v(total_id, std::move(value));
 			return addVertex(v);
@@ -143,9 +143,9 @@ namespace Graph
 		// NOTE By returning values and not vertices (and user probably wants values), we can keep
 		//      implementation of vertex class internal (and so it could be protected and nested)
 		//      Similar behaviour as listvertices() method
-		std::vector<std::pair<long, V>> getVerticesValues() const
+		std::vector<std::pair<size_t, V>> getVerticesValues() const
 		{
-			std::vector<std::pair<long, V>> result;
+			std::vector<std::pair<size_t, V>> result;
 			for(auto& vert : vertices)
 			{
 				result.push_back({ vert.first, vert.second.getValue() });
@@ -158,7 +158,7 @@ namespace Graph
 		* @param vertex id of vertex to remove
 		* @return number vertices removed - at most 1
 		*/
-		size_t removeVertex(long vertex)
+		size_t removeVertex(size_t vertex)
 		{
 			for (auto & i : vertices)
 			{
@@ -173,9 +173,9 @@ namespace Graph
 		* @param to vertex to
 		* @return number edges removed - at most 1
 		*/
-		size_t removeEdge(long from, long to)
+		size_t removeEdge(size_t from, size_t to)
 		{
-			return vertices[from].edgesTo.erase(to);
+			return vertices.find(from)->second.edgesTo.erase(to);
 		}
 
 #ifdef GRAPH_DEBUG
@@ -196,7 +196,7 @@ namespace Graph
 			{
 				for (auto & n : m.second.edgesTo)
 				{
-					ss << "Edge from " << m.second.value << " to " << vertices[n.first].value << " with value " << n.second <<"\n";
+					ss << "Edge from " << m.second.value << " to " << vertices.find(n.first)->second.value << " with value " << n.second <<"\n";
 				}
 			}
 			return ss.str();
@@ -232,12 +232,12 @@ namespace Graph
 		* @param value value of edge
 		* @return nothing
 		*/
-		void addEdge(long from, long to, const E & value)
+		void addEdge(size_t from, size_t to, const E & value)
 		{
-			this->vertices[from].edgesTo.insert(std::pair<long, E>(to, value));     // NOTE "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
+			this->vertices.find(from)->second.edgesTo.insert({to, value});     // NOTE "this->" must go before the vertices name ( clang complains otherwise, some inheritance problem probably )
 			if(!(this->directed))
 			{
-				this->vertices[to].edgesTo.insert(std::pair<long, E>(from, value));
+				this->vertices.find(to)->second.edgesTo.insert({from, value});
 			}
 		}
 
@@ -248,12 +248,12 @@ namespace Graph
 		* @param value value of edge
 		* @return nothing
 		*/
-		void addEdge(long from, long to, E && value)
+		void addEdge(size_t from, size_t to, E && value)
 		{
-			this->vertices[from].edgesTo.insert(std::pair<long, E>(to, std::move(value)));
+			this->vertices.find(from)->second.edgesTo.insert({to, std::move(value)});
 			if (!(this->directed))
 			{
-				this->vertices[to].edgesTo.insert(std::pair<long, E>(from, std::move(value)));
+				this->vertices.find(to)->second.edgesTo.insert({from, std::move(value)});
 			}
 		}
 	};
@@ -284,13 +284,13 @@ namespace Graph
 		* @param to vertex to edge is coming, must be in graph
 		* @return nothing
 		*/
-		void addEdge(long from, long to)
+		void addEdge(size_t from, size_t to)
 		{
 			Unweight u;
-			this->vertices[from].edgesTo.insert(std::make_pair(to, u));
+			this->vertices.find(from)->second.edgesTo.insert({to, u});
 			if (!(this->directed))
 			{
-				this->vertices[to].edgesTo.insert(std::pair<long, Unweight>(from, u));
+				this->vertices.find(to)->second.edgesTo.insert({from, u});
 			}
 		}
 	};
