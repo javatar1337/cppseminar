@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Graph.h"
+#include "Graph_algorithms.h"
 using namespace std;
 
 class Destroyer
