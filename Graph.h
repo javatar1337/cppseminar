@@ -457,6 +457,7 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
+		
 		/**
 		* Template update value of edge
 		* @param from vertex from
