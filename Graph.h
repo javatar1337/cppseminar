@@ -57,6 +57,14 @@ namespace Graph
 			std::map<size_t, E> outgoingEdges;
 			//Vertex() {}  NOTE read comment at Source.cpp line 59
 			Vertex(size_t id, V value) :id(id), value(value) {}
+			void setValue(const V & val)
+			{
+				value = val;
+			}
+			void setValue(V && val)
+			{
+				value = std::move(val);
+			}
 		public:
 			size_t getId() const
 			{
@@ -336,6 +344,33 @@ namespace Graph
 		}
 
 		/**
+		* @brief Set value of given vertex
+		* @param vertex id of vertex
+		* @return nothing
+		*/
+		void setVertexValue(size_t vertex, const V & value)
+		{
+			auto is_in = vertices.find(vertex);
+			if (is_in != vertices.end()) {
+				is_in->second.setValue(value);
+			}
+			return;
+		}
+		/**
+		* @brief Set value of given vertex
+		* @param vertex id of vertex
+		* @return nothing
+		*/
+		void setVertexValue(size_t vertex, V && value)
+		{
+			auto is_in = vertices.find(vertex);
+			if (is_in != vertices.end()) {
+				is_in->second.setValue(std::move(value));
+			}
+			return;
+		}
+
+		/**
 		* Remove vertex and all edges adjacent to it
 		* @param vertex id of vertex to remove
 		* @return number vertices removed - at most 1
@@ -359,6 +394,43 @@ namespace Graph
 		{
 			return vertices.find(from)->second.outgoingEdges.erase(to);
 		}
+
+		/**
+		* Test adjacency of 2 vertices
+		* @param from vertex from
+		* @param to vertex to
+		* @return true if vertices are adjacent, false if not or if they are invalid
+		*/
+		bool adjacent(size_t from, size_t to)
+		{
+			bool result = false;
+			if (vertices.find(from) != vertices.end())
+			{
+				if (vertices.find(from)->second.outgoingEdges.find(to) != vertices.find(from)->second.outgoingEdges.end())
+					result = true;
+			}
+			return result;
+		}
+
+		/**
+		* Find neighbours of vertex
+		* @param vertex
+		* @return vector of ids of neighbours, if invalid vertex - empty
+		*/
+		std::vector<size_t> getNeighbours(size_t vertex) const
+		{
+			std::vector<size_t> result;
+			auto vertex_found = vertices.find(vertex);
+			if (vertex_found != vertices.end())
+			{
+				for (auto & v : vertex_found->second.outgoingEdges)
+				{
+					result.push_back(v.first);
+				}
+			}
+			return result;
+		}
+
 
 #ifdef GRAPH_DEBUG
 		std::string listvertices() const
@@ -385,6 +457,29 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
+		/**
+		* Template update value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @param value new value of edge
+		* @return nothing
+		*/
+		template <typename X> void _updateEdgeValue(const size_t & from, const size_t & to, X && value)
+		{
+			auto vertex_from = vertices.find(from);
+			if (vertex_from != vertices.end())
+			{
+				if (vertices.find(to) != vertices.end())
+				{
+					auto edgeto = vertex_from->second.outgoingEdges.find(to);
+					if (edgeto != vertex_from->second.outgoingEdges.end())
+					{
+						vertex_from->second.outgoingEdges.find(to)->second = std::forward<X>(value);
+					}
+				}
+			}
+			return;
+		}
 	public:
 		/**
 		* Orientation constructor
@@ -441,6 +536,7 @@ namespace Graph
 		* Get value of edge
 		* @param from vertex from
 		* @param to vertex to
+		* @throws invalid_argument exception if either id is invalid
 		* @return value of edge
 		*/
 		const E& getEdgeValue(size_t from, size_t to)
@@ -456,6 +552,30 @@ namespace Graph
 				throw std::invalid_argument("\"to\" vertex id not found");
 			}
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
+		}
+
+		/**
+		* Update value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @param value new value of edge
+		* @return nothing
+		*/
+		void updateEdgeValue(size_t from, size_t to, const E & value)
+		{
+			_updateEdgeValue(from, to, value);
+		}
+
+		/**
+		* Update value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @param move value new value of edge
+		* @return nothing
+		*/
+		void updateEdgeValue(size_t from, size_t to, E && value)
+		{
+			_updateEdgeValue(from, to, std::move(value));
 		}
 
 		/**
