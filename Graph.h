@@ -296,6 +296,29 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
+		/**
+		* Template update value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @param value new value of edge
+		* @return nothing
+		*/
+		template <typename X> void _updateEdgeValue(const size_t & from, const size_t & to, X && value)
+		{
+			auto vertex_from = vertices.find(from);
+			if (vertex_from != vertices.end())
+			{
+				if (vertices.find(to) != vertices.end())
+				{
+					auto edgeto = vertex_from->second.outgoingEdges.find(to);
+					if (edgeto != vertex_from->second.outgoingEdges.end())
+					{
+						vertex_from->second.outgoingEdges.find(to)->second = std::forward<X>(value);
+					}
+				}
+			}
+			return;
+		}
 	public:
 		/**
 		* Orientation constructor
@@ -368,6 +391,30 @@ namespace Graph
 				throw std::invalid_argument("\"to\" vertex id not found");
 			}
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
+		}
+
+		/**
+		* Update value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @param value new value of edge
+		* @return nothing
+		*/
+		void updateEdgeValue(size_t from, size_t to, const E & value)
+		{
+			_updateEdgeValue(from, to, value);
+		}
+
+		/**
+		* Update value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @param move value new value of edge
+		* @return nothing
+		*/
+		void updateEdgeValue(size_t from, size_t to, E && value)
+		{
+			_updateEdgeValue(from, to, std::move(value));
 		}
 	};
 

@@ -63,8 +63,16 @@ int main()
 	cout << "removing Breclav" << endl;
 	graph.removeVertex(breclav);
 	cout << graph.listedges();
-
+	cout << endl << "updating edge from praha to brno" << endl;
+	graph.updateEdgeValue(praha, brno, 200);
 	std::cout << "Edge value from Praha to Brno: " << graph.getEdgeValue(praha, brno) << std::endl;
+	cout << endl << "updating edge from praha to brno" << endl;
+	int upd = 222;
+	graph.updateEdgeValue(praha, brno, upd);
+	std::cout << "Edge value from Praha to Brno: " << graph.getEdgeValue(praha, brno) << std::endl;
+
+	graph.updateEdgeValue(brno, praha, 313);
+	cout << graph.listedges() << endl;
 
 	std::string newbrno = "BRNO";
 	graph.setVertexValue(praha, "PRAHA");
