@@ -17,7 +17,7 @@ namespace Graph
 	class Unweight
 	{
 	private:
-		Unweight();
+		Unweight() {}
 	public:
 		template<typename V, typename E>
 		friend class Graph;
@@ -36,6 +36,12 @@ namespace Graph
 	class Graph<U, Unweight>;
 
 	/**
+	 * Functions declarations
+	 */
+	
+
+
+	/**
 	 * Abstract Graph class
 	 */
 	template<typename V, typename E>
@@ -43,22 +49,23 @@ namespace Graph
 	{
 	protected:
 		/**
-		* Vertex class
-		*/
+		 * Vertex class
+		 */
 		class Vertex
 		{
-		public:     // TODO change to private later, just makes it easier to code, cause IDE suggestions
 			friend class AbstractGraph<V,E>;
 			friend class Graph<V,E>;
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
-			//Vertex() {}  NOTE read comment at Source.cpp line 59
-			Vertex(size_t id, V value) :id(id), value(value) {}
+			Vertex(size_t id, V value) :id(id), value(value)
+			{}
+
 			void setValue(const V & val)
 			{
 				value = val;
 			}
+
 			void setValue(V && val)
 			{
 				value = std::move(val);
@@ -68,6 +75,7 @@ namespace Graph
 			{
 				return id;
 			}
+
 			const V& getValue() const
 			{
 				return value;
@@ -149,6 +157,20 @@ namespace Graph
 			for(auto& vert : vertices)
 			{
 				result.push_back({ vert.first, vert.second.getValue() });
+			}
+			return result;
+		}
+
+		/**
+		* @brief Get pair of <id, value> of vertices
+		* @return map, where key=id and value=value of given vertex
+		*/
+		std::map<size_t, V> getVerticesMap() const
+		{
+			std::map<size_t, V> result;
+			for (auto& vert : vertices)
+			{
+				result.insert(std::pair<size_t, V>(vert.first, vert.second.getValue()));
 			}
 			return result;
 		}

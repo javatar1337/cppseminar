@@ -117,5 +117,34 @@ int main()
 
 	std::cout << "Destroyer(2) value: " << destroyerGraph.getVertexValue(d2) << std::endl;
 
+	//pokus
+	Graph::Graph<int> example;
+
+	for (int i = 0; i < 10; i++){
+		example.addVertex(i);
+	}
+	
+	example.addEdge((size_t)0, (size_t)2);
+	example.addEdge((size_t)0, (size_t)3);
+	example.addEdge((size_t)0, (size_t)7);
+	example.addEdge((size_t)2, (size_t)5);
+	example.addEdge((size_t)2, (size_t)6);
+	example.addEdge((size_t)2, (size_t)8);
+	example.addEdge((size_t)3, (size_t)4);
+	example.addEdge((size_t)3, (size_t)8);
+	example.addEdge((size_t)4, (size_t)8);
+	example.addEdge((size_t)5, (size_t)1);
+	example.addEdge((size_t)6, (size_t)7);
+	example.addEdge((size_t)7, (size_t)9);
+	example.addEdge((size_t)8, (size_t)9);
+	example.addEdge((size_t)9, (size_t)5);
+	cout << "DFS" << endl;
+	Graph::DFS(example, size_t(0), [](const int & a) {
+		std::cout << a << std::endl;
+	});
+	cout << "BFS" << endl;
+	Graph::BFS(example, size_t(0), [](const int & a) {
+		std::cout << a << std::endl;
+	});
 	return 0;
 }
