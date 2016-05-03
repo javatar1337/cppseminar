@@ -42,6 +42,7 @@ namespace Graph
 				}
 			}
 		}
+		return;
 	}
 
 	/**
@@ -80,5 +81,6 @@ namespace Graph
 				}
 			}
 		}
+		return;
 	}
 }
