@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
+#include <algorithm>
 
 #ifndef GRAPH_DEBUG
 #define GRAPH_DEBUG
@@ -123,6 +125,178 @@ namespace Graph
 			auto toReturn = vertices.insert(std::pair<size_t, Vertex >(total_id, std::move(vertex)));
 			total_id++;
 			return toReturn.first->first;
+		}
+
+		// Func takes outputFile and outgoingEdges element as params and performs operation on those
+		template<typename Func>
+		bool _saveToFile(const std::string& filePath, Func f) const
+		{
+			std::ofstream outputFile(filePath);
+
+			if(outputFile.is_open())
+			{
+				for(const auto& v : vertices)
+				{
+					outputFile << "id " << v.second.id << " "
+					           << v.second.value << std::endl;
+					for(const auto& e : v.second.outgoingEdges)
+					{
+						outputFile << e.first;
+
+						f(outputFile, e);
+
+						outputFile << std::endl;
+					}
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
+		// Func takes stringstream and index of end vertex as params and performs operation on those
+		template<typename Func>
+		bool _loadFromFile(const std::string& filePath, bool isWeighted, Func f)
+		{
+			vertices.clear();
+			std::ifstream inputFile(filePath);
+			std::string line;
+			bool retValue = false;
+
+			if(inputFile.is_open())
+			{
+				retValue = true;
+
+				while(getline(inputFile, line))
+				{
+					std::stringstream ss(line);
+
+					if(line.substr(0, 3) == "id ")
+					{
+						ss.ignore(3);
+						size_t vertId;
+						V vertValue; // WARNING V must be default constructible in this case!
+
+						if(!ss.good())
+						{
+							retValue = false;
+							break;
+						}
+
+						ss >> vertId;
+						ss.ignore(1);
+
+						if(!ss.good())
+						{
+							retValue = false;
+							break;
+						}
+
+						ss >> vertValue;
+
+						vertices.insert({vertId, Vertex(vertId, std::move(vertValue))});
+
+						if(vertId > total_id)
+						{
+							total_id = vertId;
+						}
+					}
+					else
+					{
+						if((isWeighted && line.size() < 3) || (!isWeighted && line.size() < 1))
+						{
+							retValue = false;
+							break;
+						}
+
+						size_t targetId;
+
+						ss >> targetId;
+						ss.ignore(1);
+
+						if(isWeighted && !ss.good())
+						{
+							retValue = false;
+							break;
+						}
+
+						f(ss, targetId);
+					}
+
+					ss.flush(); // just to be safe
+				}
+			}
+
+			if(!retValue)
+			{
+				vertices.clear();
+			}
+
+			return retValue;
+		}
+
+		// Func gets ofstream and edge value as params and (possibly) modifies them
+		template<typename Func>
+		bool _exportToDot(const std::string& filePath, Func f)
+		{
+			std::ofstream outputFile(filePath);
+			std::vector<std::pair<size_t, size_t>> exportedPairs;
+
+			if(!outputFile.is_open())
+			{
+				return false;
+			}
+
+			outputFile << (directed ? "digraph {" : "graph {") << std::endl;
+
+			// First we create labels and output them to file
+			// Loop is seperate from the one below to have all labels defined at the start
+			for(auto& v : vertices)
+			{
+				outputFile << v.second.id << " [label=\"";
+
+				std::stringstream ss;
+				ss << v.second.value;
+
+				outputFile << ss.str();
+
+				ss.flush();
+
+				outputFile << "\"];" << std::endl;
+			}
+
+			// Now we create edges between vertices
+			for(auto& v : vertices)
+			{
+				for(auto& e : v.second.outgoingEdges)
+				{
+					if(directed)
+					{
+						outputFile << v.second.id << " -> " << e.first;
+
+						f(outputFile, e.second);
+
+						outputFile << ";" << std::endl;
+					}
+					else
+					{
+						if(std::find(exportedPairs.begin(), exportedPairs.end(), std::make_pair(e.first, v.second.id)) == exportedPairs.end())
+						{
+							outputFile << v.second.id << " -- " << e.first;
+
+							f(outputFile, e.second);
+
+							exportedPairs.push_back({v.second.id, e.first});
+							outputFile << ";" << std::endl;
+						}
+					}
+				}
+			}
+
+			outputFile << "}";
+
+			return true;
 		}
 	public:
 		/**
@@ -290,19 +464,6 @@ namespace Graph
 			}
 			return ss.str();
 		}
-
-		std::string listedges()
-		{
-			std::stringstream ss;
-			for (auto & m : vertices)
-			{
-				for (auto & n : m.second.outgoingEdges)
-				{
-					ss << "Edge from " << m.second.value << " to " << vertices.find(n.first)->second.value << " with value " << n.second <<"\n";
-				}
-			}
-			return ss.str();
-		}
 #endif
 	};
 
@@ -318,6 +479,7 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
+		
 		/**
 		* Template update value of edge
 		* @param from vertex from
@@ -438,6 +600,67 @@ namespace Graph
 		{
 			_updateEdgeValue(from, to, std::move(value));
 		}
+
+		/**
+		 * @brief Saves graph to file in custom format
+		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
+		 * @return true if save request was successful, false otherwise
+		 */
+		bool saveToFile(const std::string& filePath) const
+		{
+			return this->_saveToFile(filePath, [](auto& outputFile, auto& e)
+			{
+				outputFile << " " << e.second;
+			});
+		}
+
+		/**
+		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
+		* @param filePath path to file
+		* @return true if loading was successful, false otherwise
+		*/
+		bool loadFromFile(const std::string& filePath)
+		{
+			return this->_loadFromFile(filePath, true, [&,this](auto& ss, auto& targetId)
+			{
+				E edgeValue; // WARNING E must be default constructible in this case!
+				ss >> edgeValue;
+				vertices.rbegin()->second.outgoingEdges.insert({targetId, edgeValue});
+			});
+		}
+
+		/**
+		 * @brief Exports graph to dot format with ids as vertex names
+		 * @param filePath path to file
+		 * @return true if export was sucessful, false otherwise
+		 */
+		bool exportToDot(const std::string& filePath)
+		{
+			return this->_exportToDot(filePath, [](auto& outputFile, auto& e)
+			{
+				std::stringstream ss;
+				ss << e;
+
+				outputFile << "[label=\"" << ss.str() << "\",weight=\"" << ss.str() << "\"]";
+
+				ss.flush();
+			});
+		}
+
+#ifdef GRAPH_DEBUG
+		std::string listedges()
+		{
+			std::stringstream ss;
+			for (auto & m : vertices)
+			{
+				for (auto & n : m.second.outgoingEdges)
+				{
+					ss << "Edge from " << m.second.value << " to " << vertices.find(n.first)->second.value << " with value " << n.second <<"\n";
+				}
+			}
+			return ss.str();
+		}
+#endif
 	};
 
 	/**
@@ -484,6 +707,54 @@ namespace Graph
 				vertices.find(to)->second.outgoingEdges.insert({from, u});
 			}
 		}
+
+		/**
+		 * @brief Saves graph to file in custom format
+		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
+		 * @return true if save request was successful, false otherwise
+		 */
+		bool saveToFile(const std::string& filePath) const
+		{
+			return this->_saveToFile(filePath, [](auto&, auto&) { });
+		}
+
+		/**
+		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
+		* @param filePath path to file
+		* @return true if loading was successful, false otherwise
+		*/
+		bool loadFromFile(const std::string& filePath)
+		{
+			return this->_loadFromFile(filePath, false, [&, this](auto& ss, auto& targetId)
+			{
+				vertices.rbegin()->second.outgoingEdges.insert({targetId, Unweight()});
+			});
+		}
+
+		/**
+		 * @brief Exports graph to dot format with ids as vertex names
+		 * @param filePath path to file
+		 * @return true if export was sucessful, false otherwise
+		 */
+		bool exportToDot(const std::string& filePath)
+		{
+			return this->_exportToDot(filePath, [](auto& outputFile, auto& ss) { });
+		}
+
+#ifdef GRAPH_DEBUG
+		std::string listedges()
+		{
+			std::stringstream ss;
+			for (auto & m : vertices)
+			{
+				for (auto & n : m.second.outgoingEdges)
+				{
+					ss << "Edge from " << m.second.value << " to " << vertices.find(n.first)->second.value << "\n";
+				}
+			}
+			return ss.str();
+		}
+#endif
 	};
 }
 

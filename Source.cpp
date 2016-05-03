@@ -117,6 +117,115 @@ int main()
 
 	std::cout << "Destroyer(2) value: " << destroyerGraph.getVertexValue(d2) << std::endl;
 
+	std::cout << "--FILE SAVE/LOAD--" << std::endl;
+
+	Graph::Graph<std::string, int> triangleGraph;
+
+	auto first = triangleGraph.addVertex("pointA");
+	auto second = triangleGraph.addVertex("pointB");
+	auto third = triangleGraph.addVertex("pointC");
+
+	triangleGraph.addEdge(first, second, 5);
+	triangleGraph.addEdge(second, third, 4);
+	triangleGraph.addEdge(third, first, 3);
+
+	std::cout << "Original graph: " << std::endl;
+	std::cout << triangleGraph.listvertices() << std::endl;
+	std::cout << triangleGraph.listedges() << std::endl;
+
+	triangleGraph.saveToFile("triangleGraph.txt");
+
+	Graph::Graph<std::string, int> triangleGraphLoaded;
+
+	bool loadedFromFile = triangleGraphLoaded.loadFromFile("triangleGraph.txt");
+
+	std::cout << "Loaded graph: " << loadedFromFile << std::endl;
+	std::cout << triangleGraphLoaded.listvertices() << std::endl;
+	std::cout << triangleGraphLoaded.listedges() << std::endl;
+
+	std::cout << "TRIANGLE GRAPH EDITED" << std::endl;
+
+	auto fourth = triangleGraph.addVertex("pointD");
+
+	triangleGraph.addEdge(fourth, first, 2);
+	triangleGraph.addEdge(fourth, second, 2);
+	triangleGraph.addEdge(fourth, third, 2);
+
+	std::cout << "Original graph: " << std::endl;
+	std::cout << triangleGraph.listvertices() << std::endl;
+	std::cout << triangleGraph.listedges() << std::endl;
+
+	triangleGraph.saveToFile("triangleGraph.txt");
+	triangleGraphLoaded.loadFromFile("triangleGraph.txt");
+
+	std::cout << "Loaded graph: " << loadedFromFile << std::endl;
+	std::cout << triangleGraphLoaded.listvertices() << std::endl;
+	std::cout << triangleGraphLoaded.listedges() << std::endl;
+
+	Graph::Graph<std::string> squareGraph(false);
+	auto sqVertex1 = squareGraph.addVertex("vrtx1");
+	auto sqVertex2 = squareGraph.addVertex("vrtx2");
+	auto sqVertex3 = squareGraph.addVertex("vrtx3");
+	auto sqVertex4 = squareGraph.addVertex("vrtx4");
+
+	squareGraph.addEdge(sqVertex1, sqVertex2);
+	squareGraph.addEdge(sqVertex2, sqVertex3);
+	squareGraph.addEdge(sqVertex3, sqVertex4);
+	squareGraph.addEdge(sqVertex4, sqVertex1);
+	squareGraph.addEdge(sqVertex1, sqVertex3);
+	squareGraph.addEdge(sqVertex2, sqVertex4);
+
+	std::cout << "Original graph: " << std::endl;
+	std::cout << squareGraph.listvertices() << std::endl;
+	std::cout << squareGraph.listedges() << std::endl;
+
+	squareGraph.saveToFile("squareGraph.txt");
+
+	Graph::Graph<std::string> squareGraphLoaded(false);
+	squareGraphLoaded.loadFromFile("squareGraph.txt");
+
+	std::cout << "Loaded graph: " << std::endl;
+	std::cout << squareGraphLoaded.listvertices() << std::endl;
+	std::cout << squareGraphLoaded.listedges() << std::endl;
+
+	squareGraphLoaded.exportToDot("squareDot.txt");
+
+	Graph::Graph<std::string> dirUnweightedGraph;
+
+	first = dirUnweightedGraph.addVertex("first");
+	second = dirUnweightedGraph.addVertex("second");
+	third = dirUnweightedGraph.addVertex("third");
+
+	dirUnweightedGraph.addEdge(first, second);
+	dirUnweightedGraph.addEdge(first, third);
+	dirUnweightedGraph.addEdge(second, third);
+
+	dirUnweightedGraph.exportToDot("triangleDot.txt");
+
+	triangleGraph.exportToDot("triangleWeightedDot.txt");
+
+	Graph::Graph<std::string, int> undirWeightedGraph(false);
+
+	first = undirWeightedGraph.addVertex("oneVertex");
+	second = undirWeightedGraph.addVertex("anotherVertex");
+
+	undirWeightedGraph.addEdge(first, second, 5);
+
+	undirWeightedGraph.exportToDot("undirWeighted.txt");
+
+	Graph::Graph<std::string, int> smallMapGraph;
+
+	sqVertex1 = smallMapGraph.addVertex("Prague");
+	sqVertex2 = smallMapGraph.addVertex("Brno");
+	sqVertex3 = smallMapGraph.addVertex("Pardubice");
+
+	smallMapGraph.addEdge(sqVertex1, sqVertex2, 205);
+	smallMapGraph.addEdge(sqVertex1, sqVertex3, 124);
+	smallMapGraph.addEdge(sqVertex2, sqVertex3, 145);
+
+	smallMapGraph.exportToDot("smallMapDot.txt");
+
+
 	//pokus
 	Graph::Graph<int> example;
 
