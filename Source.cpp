@@ -255,5 +255,90 @@ int main()
 	Graph::BFS(example, size_t(0), [](const int & a) {
 		std::cout << a << std::endl;
 	});
+	
+	auto exampleEdges = example.getEdgesPositions();
+	
+	for(auto& edge : exampleEdges)
+	{
+		std::cout << edge.first << ", " << edge.second << std::endl;
+	}
+	
+	std::cout << "BellmanFord" << std::endl;
+	
+	Graph::Graph<size_t, size_t> someGraphUnDir(false);
+	std::vector<size_t> someGraphVertices;
+	
+	for(size_t i = 0; i < 10; ++i)
+	{
+		someGraphVertices.push_back(someGraphUnDir.addVertex(i));
+	}
+	
+	for(size_t i = 0; i<10; ++i)
+	{
+		for(size_t j = 0; j<10; ++j)
+		{
+			if((i+j) % 5 == 0) { someGraphUnDir.addEdge(i, j, i+j); }
+		}
+	}
+	
+	someGraphUnDir.addEdge(someGraphVertices[0], someGraphVertices[2], 10);
+	someGraphUnDir.addEdge(someGraphVertices[8], someGraphVertices[3], 9);
+	
+	someGraphUnDir.exportToDot("biggerGraph.txt");
+	std::cout << bellmanFordShortestPath(someGraphUnDir, someGraphVertices[0], someGraphVertices[1]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphUnDir, someGraphVertices[0], someGraphVertices[8]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphUnDir, someGraphVertices[0], someGraphVertices[0]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphUnDir, someGraphVertices[6], someGraphVertices[1]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphUnDir, someGraphVertices[3], someGraphVertices[2]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphUnDir, someGraphVertices[7], someGraphVertices[3]) << std::endl;
+	
+	someGraphVertices.clear();
+	
+	Graph::Graph<size_t, size_t> someGraphDir;
+	
+	for(size_t i = 0; i < 10; ++i)
+	{
+		someGraphVertices.push_back(someGraphDir.addVertex(i));
+	}
+	
+	for(size_t i = 0; i<10; ++i)
+	{
+		for(size_t j = 0; j<10; ++j)
+		{
+			if(i < j && (i+j) % 5 == 0) { someGraphDir.addEdge(i, j, i+j); }
+		}
+	}
+	
+	someGraphDir.addEdge(someGraphVertices[0], someGraphVertices[2], 10);
+	someGraphDir.addEdge(someGraphVertices[8], someGraphVertices[3], 9);
+	
+	someGraphDir.exportToDot("biggerGraphDir.txt");
+	std::cout << "dir" << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphDir, someGraphVertices[0], someGraphVertices[1]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphDir, someGraphVertices[0], someGraphVertices[8]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphDir, someGraphVertices[0], someGraphVertices[0]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphDir, someGraphVertices[6], someGraphVertices[1]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphDir, someGraphVertices[3], someGraphVertices[2]) << std::endl;
+	std::cout << bellmanFordShortestPath(someGraphDir, someGraphVertices[7], someGraphVertices[3]) << std::endl;
+	
+	std::cout << "Shortest path vertices: " << std::endl;
+	auto pathVerts = bellmanFordPathVertices(someGraphDir, someGraphVertices[0], someGraphVertices[7]);
+	
+	for(auto& v : pathVerts)
+		std::cout << v << std::endl;
+	std::cout << std::endl;
+	
+	// Exports dot file with colored path from source to destination
+	
+	someGraphDir.exportToDot("biggerGraphDirColored.txt", pathVerts);
+	
+	pathVerts = bellmanFordPathVertices(someGraphUnDir, someGraphVertices[8], someGraphVertices[5]);
+	for(auto& v : pathVerts)
+		std::cout << v << std::endl;
+	
+	someGraphUnDir.exportToDot("biggerGraphUnDirColored.txt", pathVerts);
+	
+	example.exportToDot("exampleDot.txt");
+	
 	return 0;
 }

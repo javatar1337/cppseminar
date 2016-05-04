@@ -16,14 +16,7 @@ namespace Graph
 	/**
 	 * Class for template specialization
 	 */
-	class Unweight
-	{
-	private:
-		Unweight() {}
-	public:
-		template<typename V, typename E>
-		friend class Graph;
-	};
+	class Unweight{ };	// NOTE private ctor removed as it caused more harm than good
 
 	/**
 	 * Classes declarations
@@ -56,7 +49,10 @@ namespace Graph
 		class Vertex
 		{
 			friend class AbstractGraph<V,E>;
-			friend class Graph<V,E>;
+			
+			template<typename TV, typename TE>
+			friend class Graph;
+			
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
@@ -275,7 +271,7 @@ namespace Graph
 					{
 						outputFile << v.second.id << " -> " << e.first;
 
-						f(outputFile, e.second);
+						f(outputFile, e.second, v.second.id, e.first);
 
 						outputFile << ";" << std::endl;
 					}
@@ -285,7 +281,7 @@ namespace Graph
 						{
 							outputFile << v.second.id << " -- " << e.first;
 
-							f(outputFile, e.second);
+							f(outputFile, e.second, v.second.id, e.first);
 
 							exportedPairs.push_back({v.second.id, e.first});
 							outputFile << ";" << std::endl;
@@ -322,6 +318,15 @@ namespace Graph
 		}
 
 		/**
+		 * @brief Get count of vertices in graph
+		 * @return count of vertices
+		 */
+		size_t getVerticesCount() const
+		{
+			return vertices.size();
+		}
+
+		/**
 		* @brief Get pair of <id, value> of vertices
 		* @return vector of pairs containing id and value of given vertex
 		*/
@@ -348,6 +353,38 @@ namespace Graph
 			}
 			return result;
 		}
+		
+		/**
+		 * @brief Returns map with vertices ids as keys and default constructed element T as value
+		 * @return map of { size_t, T }
+		 */
+		template<typename T>
+		std::map<size_t, T> getVerticesIdsMap() const
+		{
+			std::map<size_t, T> result;
+			for (auto& vert: vertices)
+			{
+				result.insert({ vert.first, T() });
+			}
+			return result;
+		}
+
+		/**
+		 * @brief Returns position of edges in format {from, to} vertex id
+		 * @return vector of pairs with edges from/to vertex ids
+		 */
+		std::vector<std::pair<size_t, size_t>> getEdgesPositions() const
+		{
+			std::vector<std::pair<size_t, size_t>> result;
+			for (auto& vert : vertices)
+			{
+				for(auto& edge : vert.second.outgoingEdges)
+				{
+					result.push_back({ vert.first, edge.first });
+				}
+			}
+			return result;
+		} 
 
 		/**
 		 * @brief Get value of given vertex
@@ -480,6 +517,9 @@ namespace Graph
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
 		
+		template<typename TV, typename TE>
+		friend class Graph;
+		
 		/**
 		* Template update value of edge
 		* @param from vertex from
@@ -562,7 +602,7 @@ namespace Graph
 		* @throws invalid_argument exception if either id is invalid
 		* @return value of edge
 		*/
-		const E& getEdgeValue(size_t from, size_t to)
+		const E& getEdgeValue(size_t from, size_t to) const
 		{
 			auto is_in_from = vertices.find(from);
 			auto is_in_to = vertices.find(to);
@@ -632,16 +672,29 @@ namespace Graph
 		/**
 		 * @brief Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
+		 * @param colorEdgesBetween ids of vertices whose between edges will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
-		bool exportToDot(const std::string& filePath)
+		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>())
 		{
-			return this->_exportToDot(filePath, [](auto& outputFile, auto& e)
+			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
 			{
 				std::stringstream ss;
 				ss << e;
 
-				outputFile << "[label=\"" << ss.str() << "\",weight=\"" << ss.str() << "\"]";
+				auto startVrtxPos = std::find(colorEdgesBetween.begin(), colorEdgesBetween.end(), startVertex);
+				std::string color;
+				
+				if(startVrtxPos != colorEdgesBetween.end())
+				{
+					if((startVrtxPos+1 != colorEdgesBetween.end() && *(startVrtxPos+1) == endVertex) ||
+					   (!directed && startVrtxPos != colorEdgesBetween.begin() && *(startVrtxPos-1) == endVertex))
+					{
+						color = ",color=\"red\"";
+					}
+				}
+				
+				outputFile << "[label=\"" << ss.str() << "\",weight=\"" << ss.str()  << "\"" << color << "]";
 
 				ss.flush();
 			});
@@ -734,11 +787,12 @@ namespace Graph
 		/**
 		 * @brief Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
+		 * @param colorEdgesBetween ids of vertices whose between edges will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
 		bool exportToDot(const std::string& filePath)
 		{
-			return this->_exportToDot(filePath, [](auto& outputFile, auto& ss) { });
+			return this->_exportToDot(filePath, [](auto&, auto&, auto&, auto&) { });
 		}
 
 #ifdef GRAPH_DEBUG
