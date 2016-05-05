@@ -16,7 +16,7 @@ namespace Graph
 	/**
 	 * Class for template specialization
 	 */
-	class Unweight{ };	// NOTE private ctor removed as it caused more harm than good
+	class Unweight { };	// NOTE private ctor removed as it caused more harm than good
 
 	/**
 	 * Classes declarations
@@ -33,7 +33,7 @@ namespace Graph
 	/**
 	 * Functions declarations
 	 */
-	
+
 
 
 	/**
@@ -49,10 +49,10 @@ namespace Graph
 		class Vertex
 		{
 			friend class AbstractGraph<V,E>;
-			
+
 			template<typename TV, typename TE>
 			friend class Graph;
-			
+
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
@@ -326,6 +326,11 @@ namespace Graph
 			return vertices.size();
 		}
 
+		bool isDirected() const
+		{
+			return directed;
+		}
+
 		/**
 		* @brief Get pair of <id, value> of vertices
 		* @return vector of pairs containing id and value of given vertex
@@ -353,7 +358,7 @@ namespace Graph
 			}
 			return result;
 		}
-		
+
 		/**
 		 * @brief Returns map with vertices ids as keys and default constructed element T as value
 		 * @return map of { size_t, T }
@@ -384,7 +389,24 @@ namespace Graph
 				}
 			}
 			return result;
-		} 
+		}
+
+		/**
+		 * @brief Returns position of edges in format {from, to} vertex id and value
+		 * @return vector of tuples in format { from vertex id, source vertex id, edge value }
+		 */
+		std::vector<std::tuple<size_t, size_t, E>> getEdgesPositionsAndValues() const
+		{
+			std::vector<std::tuple<size_t, size_t, E>> result;
+			for (auto& vert : vertices)
+			{
+				for(auto& edge : vert.second.outgoingEdges)
+				{
+					result.emplace_back(std::make_tuple(vert.first, edge.first, edge.second));
+				}
+			}
+			return result;
+		}
 
 		/**
 		 * @brief Get value of given vertex
@@ -410,7 +432,8 @@ namespace Graph
 		void setVertexValue(size_t vertex, const V & value)
 		{
 			auto is_in = vertices.find(vertex);
-			if (is_in != vertices.end()) {
+			if (is_in != vertices.end())
+			{
 				is_in->second.setValue(value);
 			}
 			return;
@@ -423,7 +446,8 @@ namespace Graph
 		void setVertexValue(size_t vertex, V && value)
 		{
 			auto is_in = vertices.find(vertex);
-			if (is_in != vertices.end()) {
+			if (is_in != vertices.end())
+			{
 				is_in->second.setValue(std::move(value));
 			}
 			return;
@@ -516,10 +540,10 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
-		
+
 		template<typename TV, typename TE>
 		friend class Graph;
-		
+
 		/**
 		* Template update value of edge
 		* @param from vertex from
@@ -672,7 +696,7 @@ namespace Graph
 		/**
 		 * @brief Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
-		 * @param colorEdgesBetween ids of vertices whose between edges will be coloured
+		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
 		 */
 		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>())
@@ -684,16 +708,54 @@ namespace Graph
 
 				auto startVrtxPos = std::find(colorEdgesBetween.begin(), colorEdgesBetween.end(), startVertex);
 				std::string color;
-				
+
 				if(startVrtxPos != colorEdgesBetween.end())
 				{
 					if((startVrtxPos+1 != colorEdgesBetween.end() && *(startVrtxPos+1) == endVertex) ||
-					   (!directed && startVrtxPos != colorEdgesBetween.begin() && *(startVrtxPos-1) == endVertex))
+					        (!directed && startVrtxPos != colorEdgesBetween.begin() && *(startVrtxPos-1) == endVertex))
 					{
 						color = ",color=\"red\"";
 					}
 				}
-				
+
+				outputFile << "[label=\"" << ss.str() << "\",weight=\"" << ss.str()  << "\"" << color << "]";
+
+				ss.flush();
+			});
+		}
+
+		/**
+		 * @brief Exports graph to dot format with ids as vertex names
+		 * @param filePath path to file
+		 * @param colorEdgesBetween vector of edges pairs which will be coloured
+		 * @return true if export was sucessful, false otherwise
+		 */
+		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges)
+		{
+			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
+			{
+				std::stringstream ss;
+				ss << e;
+
+				bool shouldBeColored = false;
+
+				for(auto& edge : colorEdges)
+				{
+					if((edge.first == startVertex && edge.second == endVertex) ||
+					        (!directed && edge.first == endVertex && edge.second == startVertex))
+					{
+						shouldBeColored = true;
+						break;
+					}
+				}
+
+				std::string color;
+
+				if(shouldBeColored)
+				{
+					color = ",color=\"red\"";
+				}
+
 				outputFile << "[label=\"" << ss.str() << "\",weight=\"" << ss.str()  << "\"" << color << "]";
 
 				ss.flush();

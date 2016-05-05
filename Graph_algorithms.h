@@ -4,9 +4,91 @@
 #include <stack>
 #include <queue>
 #include <map>
+#include <set>
 
 namespace Graph
 {
+	/**
+	 * Union-find data structure
+	 */
+	class UnionFind
+	{
+	private:
+		std::map<size_t, size_t> mVertices;
+		std::map<size_t, size_t> mSetSizes;
+	public:
+		UnionFind(const std::vector<size_t>& vertices)
+		{
+			for(auto& a : vertices)
+			{
+				mVertices.insert({a, a});
+				mSetSizes.insert({a, 1});
+			}
+		}
+
+		template<typename T>
+		UnionFind(const std::map<size_t, T>& verticesMap)
+		{
+			std::vector<size_t> vertices;
+
+			for(auto& v : verticesMap)
+			{
+				vertices.push_back(v.first);
+			}
+
+			for(auto& a : vertices)
+			{
+				mVertices.insert({a, a});
+				mSetSizes.insert({a, 1});
+			}
+		}
+
+		size_t find(size_t item)
+		{
+			size_t newSize = 1;
+			auto it = mVertices.find(item);
+
+			if(it == mVertices.end())
+			{
+				throw std::invalid_argument("Requested item does not exist.");
+			}
+
+			size_t parent = it->second;
+
+			while(parent != mVertices.find(parent)->second)
+			{
+				parent = mVertices.find(parent)->second;
+				++newSize;
+			}
+
+			mSetSizes.at(item) = newSize;
+			return parent;
+		}
+
+		void unionSets(size_t first, size_t second)
+		{
+			size_t firstRoot = find(first);
+			size_t secondRoot = find(second);
+
+			if(mSetSizes.at(first) < mSetSizes.at(second))
+			{
+				mVertices.find(firstRoot)->second = secondRoot;
+				mSetSizes.at(secondRoot) = mSetSizes.at(firstRoot);
+			}
+			else
+			{
+				mVertices.find(secondRoot)->second = firstRoot;
+				mSetSizes.at(firstRoot) = mSetSizes.at(secondRoot);
+			}
+		}
+
+		size_t size() const
+		{
+			return mVertices.size();
+		}
+	};
+
+
 	/**
 	 * Depth-first search algorithm
 	 * @param graph graph
@@ -83,7 +165,7 @@ namespace Graph
 		}
 		return;
 	}
-	
+
 	/**
 	 * @brief Bellman-Ford shortest path algorithm
 	 * @param graph graph to find shortest paths in
@@ -97,44 +179,44 @@ namespace Graph
 		std::map<size_t, E> distance = graph.template getVerticesIdsMap<E>();
 		std::map<size_t, size_t> predecessors = graph.template getVerticesIdsMap<size_t>();
 		auto graphEdges = graph.getEdgesPositions();
-		
+
 		for(auto& d : distance)
 		{
 			d.second = infinity;
 		}
-		
+
 		for(auto& p : predecessors)
 		{
 			p.second = p.first;
 		}
-		
+
 		distance.at(startVertex) = E();
-		
+
 		for(size_t i = 0; i < graph.getVerticesCount() - 1; ++i)
 		{
 			for(auto& edge : graphEdges)
 			{
 				if(distance.at(edge.first) != infinity &&
-					distance.at(edge.first) + graph.getEdgeValue(edge.first, edge.second) < distance.at(edge.second))
+				        distance.at(edge.first) + graph.getEdgeValue(edge.first, edge.second) < distance.at(edge.second))
 				{
 					distance.at(edge.second) = distance.at(edge.first) + graph.getEdgeValue(edge.first, edge.second);
 					predecessors.at(edge.second) = edge.first;
 				}
 			}
 		}
-		
+
 		for(auto& edge : graphEdges)
 		{
-			if(distance.at(edge.first) != infinity && 
-				distance.at(edge.first) + graph.getEdgeValue(edge.first, edge.second) < distance.at(edge.second))
+			if(distance.at(edge.first) != infinity &&
+			        distance.at(edge.first) + graph.getEdgeValue(edge.first, edge.second) < distance.at(edge.second))
 			{
 				throw std::invalid_argument("Graph contains cycle of negative weight!");
 			}
 		}
-		
+
 		return { distance, predecessors };
 	}
-	
+
 	/**
 	 * @brief Bellman-Ford shortest path algorithm
 	 * @param graph graph to find shortest path in
@@ -148,7 +230,7 @@ namespace Graph
 	{
 		return bellmanFord(graph, startVertex, infinity).first.at(endVertex);
 	}
-	
+
 	/**
 	 * @brief Bellman-Ford shortest path algorithm
 	 * @param graph graph to find shortest path in
@@ -162,9 +244,12 @@ namespace Graph
 	{
 		auto destination = bellmanFord(graph, startVertex, infinity);
 		std::vector<size_t> result;
-		
-		if(destination.first.at(endVertex) == infinity) { return result; }
-		
+
+		if(destination.first.at(endVertex) == infinity)
+		{
+			return result;
+		}
+
 		size_t currVertex = endVertex;
 		while(currVertex != startVertex)
 		{
@@ -172,16 +257,53 @@ namespace Graph
 			currVertex = destination.second.at(currVertex);
 		}
 		result.push_back(startVertex);
-		
+
 		return std::vector<size_t> { result.rbegin(), result.rend() };
 	}
-	
-	template<typename V, typename>
+
+	template<typename V>
 	std::map<size_t, Unweight> bellmanFord(const Graph<V,Unweight>&, size_t, Unweight = Unweight()) = delete;
-	
-	template<typename V, typename>
+
+	template<typename V>
 	Unweight bellmanFordShortestPath(const Graph<V,Unweight>&, size_t, size_t, Unweight = Unweight()) = delete;
-	
-	template<typename V, typename>
+
+	template<typename V>
 	std::vector<size_t> bellmanFordPathVertices(const Graph<V,Unweight>&, size_t, size_t, Unweight = Unweight()) = delete;
+
+	/**
+	 * @brief Kruskal algorithm for computing minimum spanning tree (only for undirected weighted graphs)
+	 * @param graph
+	 * @return vector of source/end vertices of MST edges
+	 */
+	template<typename V, typename E>
+	std::vector<std::pair<size_t, size_t>> kruskalMST(const Graph<V, E>& graph)
+	{
+		if(graph.isDirected())
+		{
+			throw std::invalid_argument("Kruskal algorithm is defined only for undirected graphs. For directed use Edmond/Karps.");
+		}
+
+		std::vector<std::pair<size_t, size_t>> result;
+		auto edges = graph.getEdgesPositionsAndValues();
+		std::sort(edges.begin(), edges.end(), [](auto a, auto b)
+		{
+			return std::get<2>(a) < std::get<2>(b);
+		} );
+
+		UnionFind uf(graph.getVerticesMap());
+
+		for(auto& edge : edges)
+		{
+			if(uf.find(std::get<0>(edge)) != uf.find(std::get<1>(edge)))
+			{
+				result.push_back({std::get<0>(edge), std::get<1>(edge)});
+				uf.unionSets(std::get<0>(edge), std::get<1>(edge));
+			}
+		}
+
+		return result;
+	}
+
+	template<typename V>
+	std::vector<std::pair<size_t, size_t>> kruskalMST(const Graph<V, Unweight>& graph) = delete;
 }
