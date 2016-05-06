@@ -14,7 +14,7 @@ namespace Graph
 	 * @param f unary function
 	 */
 	template<typename V, typename E, typename UnaryFunction>
-	void DFS(Graph<V, E> graph, size_t starting_vertex, UnaryFunction f)
+	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
 		std::map<size_t, bool> discovered;
 		auto vertmap = graph.getVerticesMap();
@@ -52,7 +52,7 @@ namespace Graph
 	* @param f unary function
 	*/
 	template<typename V, typename E, typename UnaryFunction>
-	void BFS(Graph<V, E> graph, size_t starting_vertex, UnaryFunction f)
+	void BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
 		std::map<size_t, bool> discovered;
 		auto vertmap = graph.getVerticesMap();
