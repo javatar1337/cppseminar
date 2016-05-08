@@ -7,16 +7,12 @@
 #include <fstream>
 #include <algorithm>
 
-#ifndef GRAPH_DEBUG
-#define GRAPH_DEBUG
-#endif
-
 namespace Graph
 {
 	/**
 	 * Class for template specialization
 	 */
-	class Unweight { };	// NOTE private ctor removed as it caused more harm than good
+	class Unweight { };
 
 	/**
 	 * Classes declarations
@@ -29,13 +25,7 @@ namespace Graph
 
 	template<typename U>
 	class Graph<U, Unweight>;
-
-	/**
-	 * Functions declarations
-	 */
-
-
-
+	
 	/**
 	 * Abstract Graph class
 	 */
@@ -56,7 +46,9 @@ namespace Graph
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
-			Vertex(size_t id, V value) :id(id), value(value)
+			
+			Vertex(size_t id, V value) 
+				:id(id), value(value)
 			{}
 
 			void setValue(const V & val)
@@ -90,7 +82,8 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		AbstractGraph(bool directed = true) :directed(directed)
+		AbstractGraph(bool directed = true) 
+			:directed(directed)
 		{}
 
 		/**
@@ -102,7 +95,7 @@ namespace Graph
 		/**
 		* Add vertex
 		* @param value value to be inserted
-		* @return iterator to inserted vertex
+		* @return id of inserted vertex
 		*/
 		size_t addVertex(const Vertex& vertex)
 		{
@@ -326,45 +319,37 @@ namespace Graph
 			return vertices.size();
 		}
 
+		/**
+		 * @brief Checks if graph is directed
+		 * @return true if directed, false otherwise
+		 */
 		bool isDirected() const
 		{
 			return directed;
 		}
 
-		/**
-		* @brief Get pair of <id, value> of vertices
-		* @return vector of pairs containing id and value of given vertex
-		*/
-		std::vector<std::pair<size_t, V>> getVerticesValues() const
-		{
-			std::vector<std::pair<size_t, V>> result;
-			for(auto& vert : vertices)
-			{
-				result.push_back({ vert.first, vert.second.getValue() });
-			}
-			return result;
-		}
+		// NOTE getVerticesValues removed as it does not provided any advantage against getVerticesMap()
 
 		/**
-		* @brief Get pair of <id, value> of vertices
-		* @return map, where key=id and value=value of given vertex
+		* @brief Get pairs of <id, value> of vertices
+		* @return map, where key = id and value = value of given vertex
 		*/
 		std::map<size_t, V> getVerticesMap() const
 		{
 			std::map<size_t, V> result;
 			for (auto& vert : vertices)
 			{
-				result.insert(std::pair<size_t, V>(vert.first, vert.second.getValue()));
+				result.insert({vert.first, vert.second.getValue()});
 			}
 			return result;
 		}
 
 		/**
 		 * @brief Returns map with vertices ids as keys and default constructed element T as value
-		 * @return map of { size_t, T }
+		 * @return map, where key = id and value = default constructed template parameter
 		 */
 		template<typename T>
-		std::map<size_t, T> getVerticesIdsMap() const
+		std::map<size_t, T> getVerticesMap() const
 		{
 			std::map<size_t, T> result;
 			for (auto& vert: vertices)
@@ -376,15 +361,23 @@ namespace Graph
 
 		/**
 		 * @brief Returns position of edges in format {from, to} vertex id
-		 * @return vector of pairs with edges from/to vertex ids
+		 * @param includeUndirEdgesTwice if set to true, each edge in undirected graph will be included twice
+		 * @return vector of <source vertex, end vertex> pairs
 		 */
-		std::vector<std::pair<size_t, size_t>> getEdgesPositions() const
+		std::vector<std::pair<size_t, size_t>> getEdgesPositions(bool includeUndirEdgesTwice = false) const
 		{
 			std::vector<std::pair<size_t, size_t>> result;
 			for (auto& vert : vertices)
 			{
 				for(auto& edge : vert.second.outgoingEdges)
 				{
+					if(!includeUndirEdgesTwice && !directed)
+					{
+						if(std::find(result.begin(), result.end(), std::make_pair(edge.first, vert.first)) != result.end()) 
+						{ 
+							continue;
+						}
+					}
 					result.push_back({ vert.first, edge.first });
 				}
 			}
@@ -393,16 +386,24 @@ namespace Graph
 
 		/**
 		 * @brief Returns position of edges in format {from, to} vertex id and value
+		 * @param includeUndirEdgesTwice if set to true, each edge in undirected graph will be included twice
 		 * @return vector of tuples in format { from vertex id, source vertex id, edge value }
 		 */
-		std::vector<std::tuple<size_t, size_t, E>> getEdgesPositionsAndValues() const
+		std::vector<std::tuple<size_t, size_t, E>> getEdgesPositionsAndValues(bool includeUndirEdgesTwice = false) const
 		{
 			std::vector<std::tuple<size_t, size_t, E>> result;
 			for (auto& vert : vertices)
 			{
 				for(auto& edge : vert.second.outgoingEdges)
 				{
-					result.emplace_back(std::make_tuple(vert.first, edge.first, edge.second));
+					if(!includeUndirEdgesTwice && !directed)
+					{
+						if(std::find(result.begin(), result.end(), std::make_tuple(edge.first, vert.first, edge.second))!= result.end()) 
+						{ 
+							continue;
+						}
+					}
+					result.push_back(std::make_tuple(vert.first, edge.first, edge.second));
 				}
 			}
 			return result;
@@ -436,8 +437,8 @@ namespace Graph
 			{
 				is_in->second.setValue(value);
 			}
-			return;
 		}
+		
 		/**
 		* @brief Set value of given vertex
 		* @param vertex id of vertex
@@ -450,7 +451,6 @@ namespace Graph
 			{
 				is_in->second.setValue(std::move(value));
 			}
-			return;
 		}
 
 		/**
@@ -484,7 +484,7 @@ namespace Graph
 		* @param to vertex to
 		* @return true if vertices are adjacent, false if not or if they are invalid
 		*/
-		bool adjacent(size_t from, size_t to)
+		bool adjacent(size_t from, size_t to) const
 		{
 			bool result = false;
 			if (vertices.find(from) != vertices.end())
@@ -516,7 +516,7 @@ namespace Graph
 
 
 #ifdef GRAPH_DEBUG
-		std::string listvertices() const
+		std::string listVertices() const
 		{
 			std::stringstream ss;
 			for (auto & m : vertices)
@@ -524,6 +524,11 @@ namespace Graph
 				ss << m.second.id + 1 << "." << m.second.value << " ";
 			}
 			return ss.str();
+		}
+		
+		size_t getActualId() const
+		{
+			return total_id;
 		}
 #endif
 	};
@@ -572,7 +577,8 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		Graph(bool directed = true) :AbstractGraph<V,E>(directed)
+		Graph(bool directed = true) 
+			:AbstractGraph<V,E>(directed)
 		{}
 
 		/**
@@ -590,6 +596,13 @@ namespace Graph
 		*/
 		void addEdge(size_t from, size_t to, const E & value)
 		{
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end() || is_in_to == vertices.end())
+			{
+				return;
+			}
+			
 			vertices.find(from)->second.outgoingEdges.insert({to, value});
 			if(!directed)
 			{
@@ -612,6 +625,7 @@ namespace Graph
 			{
 				return;
 			}
+			
 			vertices.find(from)->second.outgoingEdges.insert({to, std::move(value)});
 			if (!directed)
 			{
@@ -763,7 +777,7 @@ namespace Graph
 		}
 
 #ifdef GRAPH_DEBUG
-		std::string listedges()
+		std::string listEdges()
 		{
 			std::stringstream ss;
 			for (auto & m : vertices)
@@ -792,7 +806,8 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		Graph(bool directed = true) :AbstractGraph<V, Unweight>(directed)
+		Graph(bool directed = true) 
+			:AbstractGraph<V, Unweight>(directed)
 		{}
 
 		/**
@@ -816,6 +831,7 @@ namespace Graph
 			{
 				return;
 			}
+			
 			vertices.find(from)->second.outgoingEdges.insert({to, u});
 			if (!directed)
 			{
@@ -840,7 +856,7 @@ namespace Graph
 		*/
 		bool loadFromFile(const std::string& filePath)
 		{
-			return this->_loadFromFile(filePath, false, [&, this](auto& ss, auto& targetId)
+			return this->_loadFromFile(filePath, false, [&, this](auto&, auto& targetId)
 			{
 				vertices.rbegin()->second.outgoingEdges.insert({targetId, Unweight()});
 			});
@@ -856,9 +872,11 @@ namespace Graph
 		{
 			return this->_exportToDot(filePath, [](auto&, auto&, auto&, auto&) { });
 		}
+		
+		// TODO implement extended exportToDot also for unweighted graphs
 
 #ifdef GRAPH_DEBUG
-		std::string listedges()
+		std::string listEdges()
 		{
 			std::stringstream ss;
 			for (auto & m : vertices)
