@@ -3,9 +3,9 @@
 
 // NOTE By defining GRAPH_DEBUG before including Graph.h we also allow compilation of
 //		custom debug functions like listVertices etc. => might be useful if some problems appear
-//		and user wants to get as many informations as possible. 
+//		and user wants to get as many informations as possible.
 //		Also those codes are available only if define is here, otherwise no debug stuff is compiled
-#define GRAPH_DEBUG	
+#define GRAPH_DEBUG
 #include "Graph.h"
 
 #include "Graph_algorithms.h"
@@ -198,6 +198,8 @@ int main()
 	std::cout << squareGraphLoaded.listEdges() << std::endl;
 
 	squareGraphLoaded.exportToDot("squareDot.txt");
+	squareGraphLoaded.exportToDot("squareDotColoured.txt", { sqVertex2, sqVertex1, sqVertex3 });
+	squareGraphLoaded.exportToDot("squareDotColoured2.txt", { { sqVertex2, sqVertex1 },  { sqVertex3, sqVertex4 }});
 
 	Graph::Graph<std::string> dirUnweightedGraph;
 
@@ -224,7 +226,7 @@ int main()
 	{
 		std::cout << "EDGE " << a.first << ", " << a.second << std::endl;
 	}
-	
+
 	for(auto a : undirWeightedGraph.getEdgesPositionsAndValues())
 	{
 		std::cout << "EDGE " << std::get<0>(a) << ", " << std::get<1>(a) << ", " << std::get<2>(a) <<  std::endl;

@@ -25,7 +25,7 @@ namespace Graph
 
 	template<typename U>
 	class Graph<U, Unweight>;
-	
+
 	/**
 	 * Abstract Graph class
 	 */
@@ -46,8 +46,8 @@ namespace Graph
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
-			
-			Vertex(size_t id, V value) 
+
+			Vertex(size_t id, V value)
 				:id(id), value(value)
 			{}
 
@@ -82,7 +82,7 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		AbstractGraph(bool directed = true) 
+		AbstractGraph(bool directed = true)
 			:directed(directed)
 		{}
 
@@ -373,8 +373,8 @@ namespace Graph
 				{
 					if(!includeUndirEdgesTwice && !directed)
 					{
-						if(std::find(result.begin(), result.end(), std::make_pair(edge.first, vert.first)) != result.end()) 
-						{ 
+						if(std::find(result.begin(), result.end(), std::make_pair(edge.first, vert.first)) != result.end())
+						{
 							continue;
 						}
 					}
@@ -398,8 +398,8 @@ namespace Graph
 				{
 					if(!includeUndirEdgesTwice && !directed)
 					{
-						if(std::find(result.begin(), result.end(), std::make_tuple(edge.first, vert.first, edge.second))!= result.end()) 
-						{ 
+						if(std::find(result.begin(), result.end(), std::make_tuple(edge.first, vert.first, edge.second))!= result.end())
+						{
 							continue;
 						}
 					}
@@ -438,7 +438,7 @@ namespace Graph
 				is_in->second.setValue(value);
 			}
 		}
-		
+
 		/**
 		* @brief Set value of given vertex
 		* @param vertex id of vertex
@@ -525,7 +525,7 @@ namespace Graph
 			}
 			return ss.str();
 		}
-		
+
 		size_t getActualId() const
 		{
 			return total_id;
@@ -577,7 +577,7 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		Graph(bool directed = true) 
+		Graph(bool directed = true)
 			:AbstractGraph<V,E>(directed)
 		{}
 
@@ -602,7 +602,7 @@ namespace Graph
 			{
 				return;
 			}
-			
+
 			vertices.find(from)->second.outgoingEdges.insert({to, value});
 			if(!directed)
 			{
@@ -625,7 +625,7 @@ namespace Graph
 			{
 				return;
 			}
-			
+
 			vertices.find(from)->second.outgoingEdges.insert({to, std::move(value)});
 			if (!directed)
 			{
@@ -806,7 +806,7 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		Graph(bool directed = true) 
+		Graph(bool directed = true)
 			:AbstractGraph<V, Unweight>(directed)
 		{}
 
@@ -831,7 +831,7 @@ namespace Graph
 			{
 				return;
 			}
-			
+
 			vertices.find(from)->second.outgoingEdges.insert({to, u});
 			if (!directed)
 			{
@@ -868,12 +868,70 @@ namespace Graph
 		 * @param colorEdgesBetween ids of vertices whose between edges will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
-		bool exportToDot(const std::string& filePath)
+		/*bool exportToDot(const std::string& filePath)
 		{
 			return this->_exportToDot(filePath, [](auto&, auto&, auto&, auto&) { });
+		}*/
+
+
+		/**
+		 * @brief Exports graph to dot format with ids as vertex names
+		 * @param filePath path to file
+		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
+		 * @return true if export was sucessful, false otherwise
+		 */
+		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>())
+		{
+			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
+			{
+				auto startVrtxPos = std::find(colorEdgesBetween.begin(), colorEdgesBetween.end(), startVertex);
+				std::string color;
+
+				if(startVrtxPos != colorEdgesBetween.end())
+				{
+					if((startVrtxPos+1 != colorEdgesBetween.end() && *(startVrtxPos+1) == endVertex) ||
+					        (!directed && startVrtxPos != colorEdgesBetween.begin() && *(startVrtxPos-1) == endVertex))
+					{
+						color = "[color=\"red\"]";
+					}
+				}
+
+				outputFile << color;
+			});
 		}
-		
-		// TODO implement extended exportToDot also for unweighted graphs
+
+		/**
+		 * @brief Exports graph to dot format with ids as vertex names
+		 * @param filePath path to file
+		 * @param colorEdgesBetween vector of edges pairs which will be coloured
+		 * @return true if export was sucessful, false otherwise
+		 */
+		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges)
+		{
+			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
+			{
+				bool shouldBeColored = false;
+
+				for(auto& edge : colorEdges)
+				{
+					if((edge.first == startVertex && edge.second == endVertex) ||
+					        (!directed && edge.first == endVertex && edge.second == startVertex))
+					{
+						shouldBeColored = true;
+						break;
+					}
+				}
+
+				std::string color;
+
+				if(shouldBeColored)
+				{
+					color = "[color=\"red\"]";
+				}
+
+				outputFile << color;
+			});
+		}
 
 #ifdef GRAPH_DEBUG
 		std::string listEdges()
