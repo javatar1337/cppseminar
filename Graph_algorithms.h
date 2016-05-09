@@ -5,6 +5,7 @@
 #include <queue>
 #include <map>
 #include <set>
+#include <algorithm>
 
 namespace Graph
 {
@@ -88,6 +89,14 @@ namespace Graph
 		}
 	};
 
+	template<typename E>
+	struct CompareSecond
+	{
+		bool operator()(const std::pair<std::size_t, E>& left, const std::pair<std::size_t, E>& right) const
+		{
+			return left.second < right.second;
+		}
+	};
 
 	/**
 	* Depth-first search algorithm
@@ -345,17 +354,18 @@ namespace Graph
 		
 		while (!vertex_queue.empty())
 		{
-			size_t u = *(vertex_queue.begin());
-			for (auto & v : vertex_queue)
+			std::map<size_t, E> vqm;
+			for (auto & y : vertex_queue)
 			{
-				if (distance.at(v) < distance.at(u)) u = v;
+				vqm.insert({y, distance.at(y)});
 			}
+			size_t u = (*std::min_element(vqm.begin(), vqm.end(), CompareSecond<E>())).first;
 			vertex_queue.erase(u);
 			for (auto & w : graph.getNeighbours(u))
 			{
 				if (vertex_queue.find(w) != vertex_queue.end())
 				{
-					E alt = distance.at(u) + graph.getEdgeValue(u, w);
+					E alt = (distance.at(u) != infinity)? (distance.at(u) + graph.getEdgeValue(u, w)) : infinity;
 					if (alt < distance.at(w))
 					{
 						distance.at(w) = alt;
@@ -411,7 +421,12 @@ namespace Graph
 		size_t u;
 		while (!vertex_queue.empty())
 		{
-			u = *(vertex_queue.begin());
+			std::map<size_t, E> vqm;
+			for (auto & y : vertex_queue)
+			{
+				vqm.insert({ y, distance.at(y) });
+			}
+			u = (*std::min_element(vqm.begin(), vqm.end(), CompareSecond<E>())).first;
 			for (auto & v : vertex_queue)
 			{
 				if (distance.at(v) < distance.at(u)) u = v;
@@ -422,7 +437,7 @@ namespace Graph
 			{
 				if (vertex_queue.find(w) != vertex_queue.end())
 				{
-					E alt = distance.at(u) + graph.getEdgeValue(u, w);
+					E alt = (distance.at(u) != infinity) ? (distance.at(u) + graph.getEdgeValue(u, w)) : infinity;
 					if (alt < distance.at(w))
 					{
 						distance.at(w) = alt;
