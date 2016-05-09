@@ -6,6 +6,8 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <utility>
+#include <tuple>
 
 namespace Graph
 {
@@ -95,6 +97,18 @@ namespace Graph
 		bool operator()(const std::pair<std::size_t, E>& left, const std::pair<std::size_t, E>& right) const
 		{
 			return left.second < right.second;
+		}
+	};
+
+	template<typename E>
+	struct CompareThird
+	{
+		bool operator()(const std::tuple<size_t, size_t, E>& left, const std::tuple<size_t, size_t, E>& right) const
+		{
+			return (std::get<2>(left) < std::get<2>(right)) && 
+				(
+					((std::get<0>(left))!=std::get<1>(left)) && ((std::get<0>(right)) != std::get<1>(right))
+				);
 		}
 	};
 
@@ -457,4 +471,60 @@ namespace Graph
 		std::reverse(result.begin(), result.end());
 		return{ distance.at(target), result };
 	}
+
+	/**
+	* Prim's algorithm for computing minimum spanning tree (only for connected undirected weighted graphs)
+	* @param graph
+	* @param source vertex
+	* @return vector of source/end vertices of MST edges
+	*/
+	template<typename V, typename E>
+	std::set<std::pair<size_t, size_t>> prim(const Graph<V, E>& graph, size_t source)
+	{
+		if (graph.isDirected())
+		{
+			throw std::invalid_argument("graph must be undirected");
+		}
+
+		std::set<std::pair<size_t, size_t>> result;
+
+		std::set<size_t> vertices;
+		vertices.insert(source);
+		size_t v = source;
+		std::set<std::tuple<size_t, size_t, E>> edges;
+		while (vertices.size() < graph.getVerticesCount())
+		{
+			auto vedges = graph.getEdgesFrom(v);
+			for (auto & w : vedges)
+			{
+				if (vertices.find(w.first) == vertices.end()) edges.insert(std::make_tuple(v, w.first, w.second));
+			}
+			auto edge = (*std::min_element(edges.begin(), edges.end(), CompareThird<E>()));
+			if (result.find({ std::get<1>(edge), v }) == result.end()) result.insert({ v, std::get<1>(edge) });
+			vertices.insert(std::get<1>(edge));
+			edges.erase(edge);
+			v = std::get<1>(edge);
+		}
+
+		return result;
+	}
+
+	/**
+	* Prim's algorithm for computing minimum spanning tree (only for connected undirected weighted graphs)
+	* @param graph
+	* @return vector of source/end vertices of MST edges
+	*/
+	template<typename V, typename E>
+	std::set<std::pair<size_t, size_t>> prim(const Graph<V, E>& graph)
+	{
+		auto graphvertices = graph.getVerticesMap();
+		size_t source = (*(graphvertices.begin())).first;
+		return prim(graph, source);
+	}
+
+	template<typename V>
+	std::vector<std::pair<size_t, size_t>> prim(const Graph<V, Unweight>& graph) = delete;
+
+	template<typename V>
+	std::vector<std::pair<size_t, size_t>> prim(const Graph<V, Unweight>& graph, size_t source) = delete;
 }

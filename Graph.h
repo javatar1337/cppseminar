@@ -419,7 +419,7 @@ namespace Graph
 		 * @param source
 		 * @return edges
 		 */
-		std::map<size_t, E> getEdgesFrom(size_t source)
+		std::map<size_t, E> getEdgesFrom(size_t source) const
 		{
 			auto is_in = vertices.find(source);
 			if (is_in == vertices.end())

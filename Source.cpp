@@ -450,6 +450,14 @@ int main()
 	someGraphUnDir.exportToDot("kruskalDefault.txt");
 	someGraphUnDir.exportToDot("kruskalColoured.txt", kruskalOutput);
 
+	std::cout << std::endl << "Prim" << std::endl;
+	auto primOutput = Graph::prim(someGraphUnDir);
+
+	for (auto& edge : kruskalOutput)
+	{
+		std::cout << edge.first << "-" << edge.second << std::endl;
+	}
+
 	// Separate block to prevent variable naming collision (and because I am lazy to create a new function for it)
 	{
 		Graph::Graph<std::string, size_t> kruskalTest(false);
