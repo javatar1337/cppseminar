@@ -460,7 +460,7 @@ namespace Graph
 				}
 			}
 		}
-		vector<size_t> result;
+		std::vector<size_t> result;
 		u = target;
 		while (predecessors.at(u) != u)
 		{
