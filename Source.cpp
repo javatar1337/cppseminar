@@ -1,6 +1,13 @@
 #include <iostream>
 #include <string>
+
+// NOTE By defining GRAPH_DEBUG before including Graph.h we also allow compilation of
+//		custom debug functions like listVertices etc. => might be useful if some problems appear
+//		and user wants to get as many informations as possible.
+//		Also those codes are available only if define is here, otherwise no debug stuff is compiled
+#define GRAPH_DEBUG
 #include "Graph.h"
+
 #include "Graph_algorithms.h"
 using namespace std;
 
@@ -35,25 +42,25 @@ int main()
 	auto brno = graph.addVertex(a);
 	auto praha = graph.addVertex("Praha");
 	graph.addVertex("Breclav");
-	auto all = graph.getVerticesValues();
+	auto all = graph.getVerticesMap();
 	size_t breclav;
 	for (auto & i : all)
 	{
 		if (i.second != "Brno" && i.second != "Praha") breclav = i.first;
 	}
-	cout << graph.listvertices() << endl;
+	cout << graph.listVertices() << endl;
 	graph.addEdge(brno, praha, 33);
 	graph.addEdge(praha, brno, 40);
 	graph.addEdge(brno, breclav, 50);
-	cout << graph.listedges();
+	cout << graph.listEdges();
 	cout << "removing edge from Brno to Praha" << endl;
 	graph.removeEdge(brno, praha);
 	graph.removeEdge(brno, (size_t)10);
-	cout << graph.listedges();
+	cout << graph.listEdges();
 	cout << "adding edge from Breclav to Praha and back" << endl;
 	graph.addEdge(breclav, praha, 100);
 	graph.addEdge(praha, breclav, 120);
-	cout << graph.listedges();
+	cout << graph.listEdges();
 	cout << "Is there edge from Brno to Breclav: " << (graph.adjacent(brno, breclav) ? "true" : "false") << endl;;
 	cout << "Is there edge from Brno to Praha: " << (graph.adjacent(brno, praha) ? "true" : "false") << endl;;
 	cout << "Praha neighbours: ";
@@ -65,7 +72,7 @@ int main()
 	cout << endl;
 	cout << "removing Breclav" << endl;
 	graph.removeVertex(breclav);
-	cout << graph.listedges();
+	cout << graph.listEdges();
 	cout << endl << "updating edge from praha to brno" << endl;
 	graph.updateEdgeValue(praha, brno, 200);
 	std::cout << "Edge value from Praha to Brno: " << graph.getEdgeValue(praha, brno) << std::endl;
@@ -75,13 +82,13 @@ int main()
 	std::cout << "Edge value from Praha to Brno: " << graph.getEdgeValue(praha, brno) << std::endl;
 
 	graph.updateEdgeValue(brno, praha, 313);
-	cout << graph.listedges() << endl;
+	cout << graph.listEdges() << endl;
 
 	std::string newbrno = "BRNO";
 	graph.setVertexValue(praha, "PRAHA");
 	graph.setVertexValue(brno, newbrno);
 
-	auto vals = graph.getVerticesValues();
+	auto vals = graph.getVerticesMap();
 
 	for(auto& val : vals)
 	{
@@ -104,18 +111,18 @@ int main()
 	auto d4 = destroyerGraph.addVertex(Destroyer(4));
 	auto d2 = destroyerGraph.addVertex(Destroyer(2));
 
-	auto destVals = destroyerGraph.getVerticesValues();
+	auto destVals = destroyerGraph.getVerticesMap();
 
 	for(auto& a : destVals)
 	{
 		std::cout << (a.first+1) << "." << a.second;
 	}
 
-	std::cout << std::endl << destroyerGraph.listvertices() << std::endl;
+	std::cout << std::endl << destroyerGraph.listVertices() << std::endl;
 
 	destroyerGraph.removeVertex(d4);
 
-	std::cout << std::endl << destroyerGraph.listvertices() << std::endl;
+	std::cout << std::endl << destroyerGraph.listVertices() << std::endl;
 
 	std::cout << "Destroyer(2) value: " << destroyerGraph.getVertexValue(d2) << std::endl;
 
@@ -132,8 +139,8 @@ int main()
 	triangleGraph.addEdge(third, first, 3);
 
 	std::cout << "Original graph: " << std::endl;
-	std::cout << triangleGraph.listvertices() << std::endl;
-	std::cout << triangleGraph.listedges() << std::endl;
+	std::cout << triangleGraph.listVertices() << std::endl;
+	std::cout << triangleGraph.listEdges() << std::endl;
 
 	triangleGraph.saveToFile("triangleGraph.txt");
 
@@ -142,8 +149,8 @@ int main()
 	bool loadedFromFile = triangleGraphLoaded.loadFromFile("triangleGraph.txt");
 
 	std::cout << "Loaded graph: " << loadedFromFile << std::endl;
-	std::cout << triangleGraphLoaded.listvertices() << std::endl;
-	std::cout << triangleGraphLoaded.listedges() << std::endl;
+	std::cout << triangleGraphLoaded.listVertices() << std::endl;
+	std::cout << triangleGraphLoaded.listEdges() << std::endl;
 
 	std::cout << "TRIANGLE GRAPH EDITED" << std::endl;
 
@@ -154,15 +161,15 @@ int main()
 	triangleGraph.addEdge(fourth, third, 2);
 
 	std::cout << "Original graph: " << std::endl;
-	std::cout << triangleGraph.listvertices() << std::endl;
-	std::cout << triangleGraph.listedges() << std::endl;
+	std::cout << triangleGraph.listVertices() << std::endl;
+	std::cout << triangleGraph.listEdges() << std::endl;
 
 	triangleGraph.saveToFile("triangleGraph.txt");
 	triangleGraphLoaded.loadFromFile("triangleGraph.txt");
 
 	std::cout << "Loaded graph: " << loadedFromFile << std::endl;
-	std::cout << triangleGraphLoaded.listvertices() << std::endl;
-	std::cout << triangleGraphLoaded.listedges() << std::endl;
+	std::cout << triangleGraphLoaded.listVertices() << std::endl;
+	std::cout << triangleGraphLoaded.listEdges() << std::endl;
 
 	Graph::Graph<std::string> squareGraph(false);
 	auto sqVertex1 = squareGraph.addVertex("vrtx1");
@@ -178,8 +185,8 @@ int main()
 	squareGraph.addEdge(sqVertex2, sqVertex4);
 
 	std::cout << "Original graph: " << std::endl;
-	std::cout << squareGraph.listvertices() << std::endl;
-	std::cout << squareGraph.listedges() << std::endl;
+	std::cout << squareGraph.listVertices() << std::endl;
+	std::cout << squareGraph.listEdges() << std::endl;
 
 	squareGraph.saveToFile("squareGraph.txt");
 
@@ -187,10 +194,12 @@ int main()
 	squareGraphLoaded.loadFromFile("squareGraph.txt");
 
 	std::cout << "Loaded graph: " << std::endl;
-	std::cout << squareGraphLoaded.listvertices() << std::endl;
-	std::cout << squareGraphLoaded.listedges() << std::endl;
+	std::cout << squareGraphLoaded.listVertices() << std::endl;
+	std::cout << squareGraphLoaded.listEdges() << std::endl;
 
 	squareGraphLoaded.exportToDot("squareDot.txt");
+	squareGraphLoaded.exportToDot("squareDotColoured.txt", { sqVertex2, sqVertex1, sqVertex3 });
+	squareGraphLoaded.exportToDot("squareDotColoured2.txt", { { sqVertex2, sqVertex1 },  { sqVertex3, sqVertex4 }});
 
 	Graph::Graph<std::string> dirUnweightedGraph;
 
@@ -212,6 +221,16 @@ int main()
 	second = undirWeightedGraph.addVertex("anotherVertex");
 
 	undirWeightedGraph.addEdge(first, second, 5);
+
+	for(auto a : undirWeightedGraph.getEdgesPositions())
+	{
+		std::cout << "EDGE " << a.first << ", " << a.second << std::endl;
+	}
+
+	for(auto a : undirWeightedGraph.getEdgesPositionsAndValues())
+	{
+		std::cout << "EDGE " << std::get<0>(a) << ", " << std::get<1>(a) << ", " << std::get<2>(a) <<  std::endl;
+	}
 
 	undirWeightedGraph.exportToDot("undirWeighted.txt");
 
@@ -261,7 +280,7 @@ int main()
 		std::cout << a << std::endl;
 	});
 
-	auto exampleEdges = example.getEdgesPositions();
+	auto exampleEdges = example.getEdgesPositions(true);
 
 	for(auto& edge : exampleEdges)
 	{
@@ -453,6 +472,4 @@ int main()
 		kruskalTest.exportToDot("kruskalTestColoured.txt", kruskalMST(kruskalTest));
 	}
 	return 0;
-	
-	// NOTE Graph.h/Graph_algorithms.h probably need "small" refactoring (maybe I will do it i a near future) => too many weird functions etc.
 }

@@ -104,7 +104,7 @@ namespace Graph
 		{
 			return;
 		}
-		for (auto & ver : graph.getVerticesValues())
+		for (auto & ver : graph.getVerticesMap())
 		{
 			discovered.insert({ ver.first, false });
 		}
@@ -142,7 +142,7 @@ namespace Graph
 		{
 			return;
 		}
-		for (auto & ver : graph.getVerticesValues())
+		for (auto & ver : graph.getVerticesMap())
 		{
 			discovered.insert({ ver.first, false });
 		}
@@ -176,9 +176,9 @@ namespace Graph
 	template<typename V, typename E>
 	std::pair<std::map<size_t, E>, std::map<size_t, size_t>> bellmanFord(const Graph<V,E>& graph, size_t startVertex, E infinity = std::numeric_limits<E>::max())
 	{
-		std::map<size_t, E> distance = graph.template getVerticesIdsMap<E>();
-		std::map<size_t, size_t> predecessors = graph.template getVerticesIdsMap<size_t>();
-		auto graphEdges = graph.getEdgesPositions();
+		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
+		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
+		auto graphEdges = graph.getEdgesPositions(true);
 
 		for(auto& d : distance)
 		{
