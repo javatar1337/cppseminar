@@ -341,6 +341,9 @@ int main()
 
 	someGraphDir.addEdge(someGraphVertices[0], someGraphVertices[2], 10);
 	someGraphDir.addEdge(someGraphVertices[8], someGraphVertices[3], 9);
+	someGraphDir.addEdge(someGraphVertices[0], someGraphVertices[1], 8);
+	someGraphDir.addEdge(someGraphVertices[1], someGraphVertices[0], 13);
+
 
 	someGraphDir.exportToDot("biggerGraphDir.txt");
 	std::cout << "dir" << std::endl;
@@ -372,10 +375,12 @@ int main()
 	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[0], someGraphVertices[0]).first << std::endl;
 	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[6], someGraphVertices[1]).first << std::endl;
 	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[3], someGraphVertices[2]).first << std::endl;
+	std::cout << "path begin: ";
 	for (auto & x : Graph::dijkstra(someGraphDir, someGraphVertices[3], someGraphVertices[2]).second)
 	{
 		std::cout << x << std::endl;
 	}
+	std::cout << "path end" << std::endl;
 	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[7], someGraphVertices[3]).first << std::endl;
 	std::cout << "end" << std::endl;
 	// Exports dot file with colored path from source to destination

@@ -324,8 +324,8 @@ namespace Graph
 			throw std::invalid_argument("source vertex id not found");
 		}
 		std::set<size_t> vertex_queue;
-		std::map<size_t, E> distance = graph.template getVerticesIdsMap<E>();
-		std::map<size_t, size_t> predecessors = graph.template getVerticesIdsMap<size_t>();
+		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
+		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
 		auto graphEdges = graph.getEdgesPositions();
 
 		for (auto & d : distance)
@@ -389,8 +389,8 @@ namespace Graph
 			throw std::invalid_argument("target vertex id not found");
 		}
 		std::set<size_t> vertex_queue;
-		std::map<size_t, E> distance = graph.template getVerticesIdsMap<E>();
-		std::map<size_t, size_t> predecessors = graph.template getVerticesIdsMap<size_t>();
+		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
+		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
 		auto graphEdges = graph.getEdgesPositions();
 
 		for (auto & d : distance)
