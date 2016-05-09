@@ -10,9 +10,20 @@
 namespace Graph
 {
 	/**
-	 * Class for template specialization
+	 * Struct for template specialization
 	 */
-	class Unweight { };
+	struct Unweight 
+	{ 
+		bool operator==(const Unweight&) const
+		{
+			return true;
+		}
+		
+		bool operator!=(const Unweight&) const
+		{
+			return false;
+		}
+	};
 
 	/**
 	 * Classes declarations
@@ -33,6 +44,9 @@ namespace Graph
 	class AbstractGraph
 	{
 	protected:
+		template<typename TV, typename TE>
+		friend bool operator==(const AbstractGraph<TV,TE>&, const AbstractGraph<TV,TE>&);
+	
 		/**
 		 * Vertex class
 		 */
@@ -74,6 +88,18 @@ namespace Graph
 			const std::map<size_t, E> & getOutgoingEdges() const
 			{
 				return outgoingEdges;
+			}
+			
+			bool operator==(const Vertex& rhs) const
+			{
+				return value == rhs.value && 
+						id == rhs.id && 
+						outgoingEdges == rhs.outgoingEdges;
+			}
+			
+			bool operator!=(const Vertex& rhs) const
+			{
+				return !(*this == rhs);
 			}
 		};
 
@@ -121,9 +147,8 @@ namespace Graph
 			return toReturn.first->first;
 		}
 
-		// Func takes outputFile and outgoingEdges element as params and performs operation on those
-		template<typename Func>
-		bool _saveToFile(const std::string& filePath, Func f) const
+		template<typename Func, typename FuncVert>
+		bool _saveToFileBase(const std::string& filePath, Func f, FuncVert fv) const
 		{
 			std::ofstream outputFile(filePath);
 
@@ -131,8 +156,10 @@ namespace Graph
 			{
 				for(const auto& v : vertices)
 				{
-					outputFile << "id " << v.second.id << " "
-					           << v.second.value << std::endl;
+					outputFile << "id " << v.second.id << " ";
+					fv(outputFile, v);
+					outputFile << std::endl;
+					
 					for(const auto& e : v.second.outgoingEdges)
 					{
 						outputFile << e.first;
@@ -148,10 +175,31 @@ namespace Graph
 
 			return false;
 		}
+		
+		// Func takes outputFile and outgoingEdges element as params and performs operation on those
+		// String SFINAE for solving operator>> behaviour problem with spaces
+		template<typename Func, typename TV = V>
+		typename std::enable_if_t<!std::is_same<TV, std::string>::value, bool>
+		_saveToFile(const std::string& filePath, Func f) const
+		{
+			return _saveToFileBase(filePath, f, [](auto& outputFile, auto& v)
+			{
+				outputFile << v.second.value;
+			});
+		}
+		
+		template<typename Func, typename TV = V>
+		typename std::enable_if_t<std::is_same<TV, std::string>::value, bool>
+		_saveToFile(const std::string& filePath, Func f) const
+		{
+			return _saveToFileBase(filePath, f, [](auto& outputFile, auto& v)
+			{
+				outputFile << "\"" << v.second.value << "\"";
+			});
+		}
 
-		// Func takes stringstream and index of end vertex as params and performs operation on those
-		template<typename Func>
-		bool _loadFromFile(const std::string& filePath, bool isWeighted, Func f)
+		template<typename Func, typename FuncVert>
+		bool _loadFromFileBase(const std::string& filePath, bool isWeighted, Func f, FuncVert fv)
 		{
 			vertices.clear();
 			std::ifstream inputFile(filePath);
@@ -187,7 +235,7 @@ namespace Graph
 							break;
 						}
 
-						ss >> vertValue;
+						fv(ss, vertValue);
 
 						vertices.insert({vertId, Vertex(vertId, std::move(vertValue))});
 
@@ -228,6 +276,35 @@ namespace Graph
 			}
 
 			return retValue;
+		}
+
+		// Func takes stringstream and index of end vertex as params and performs operation on those
+		template<typename Func, typename TV = V>
+		typename std::enable_if_t<!std::is_same<TV, std::string>::value, bool> 
+		_loadFromFile(const std::string& filePath, bool isWeighted, Func f)
+		{
+			return _loadFromFileBase(filePath, isWeighted, f, [](auto& ss, auto& v)
+			{
+				ss >> v;
+			});
+		}
+		
+		template<typename Func, typename TV = V>
+		typename std::enable_if_t<std::is_same<TV, std::string>::value, bool> 
+		_loadFromFile(const std::string& filePath, bool isWeighted, Func f)
+		{
+			return _loadFromFileBase(filePath, isWeighted, f, [](auto& ss, auto& v)
+			{
+				std::string result;
+				getline(ss, result);
+				
+				size_t quotePos = result.find_first_of('"');
+				size_t quotePosEnd = result.find_last_of('"');
+				if(quotePos != std::string::npos && quotePosEnd != quotePos)
+				{
+					v = result.substr(quotePos + 1, quotePosEnd - quotePos - 1);
+				}
+			});
 		}
 
 		// Func gets ofstream and edge value as params and (possibly) modifies them
@@ -704,26 +781,68 @@ namespace Graph
 		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
 		 * @return true if save request was successful, false otherwise
 		 */
-		bool saveToFile(const std::string& filePath) const
+		template<typename TE = E>
+		typename std::enable_if_t<!std::is_same<TE, std::string>::value, bool>
+		saveToFile(const std::string& filePath) const
 		{
 			return this->_saveToFile(filePath, [](auto& outputFile, auto& e)
 			{
 				outputFile << " " << e.second;
 			});
-		}
+		} 
+		
+		/**
+		 * @brief Saves graph to file in custom format
+		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
+		 * @return true if save request was successful, false otherwise
+		 */
+		template<typename TE = E>
+		typename std::enable_if_t<std::is_same<TE, std::string>::value, bool>
+		saveToFile(const std::string& filePath) const
+		{
+			return this->_saveToFile(filePath, [](auto& outputFile, auto& e)
+			{
+				outputFile << " " << "\"" << e.second << "\"";
+			});
+		} 
 
 		/**
 		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
 		* @param filePath path to file
 		* @return true if loading was successful, false otherwise
 		*/
-		bool loadFromFile(const std::string& filePath)
+		template<typename TE = E>
+		typename std::enable_if_t<!std::is_same<TE, std::string>::value, bool>
+		loadFromFile(const std::string& filePath)
 		{
 			return this->_loadFromFile(filePath, true, [&,this](auto& ss, auto& targetId)
 			{
 				E edgeValue; // WARNING E must be default constructible in this case!
 				ss >> edgeValue;
 				vertices.rbegin()->second.outgoingEdges.insert({targetId, edgeValue});
+			});
+		}
+		
+		/**
+		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
+		* @param filePath path to file
+		* @return true if loading was successful, false otherwise
+		*/
+		template<typename TE = E>
+		typename std::enable_if_t<std::is_same<TE, std::string>::value, bool>
+		loadFromFile(const std::string& filePath)
+		{
+			return this->_loadFromFile(filePath, true, [&,this](auto& ss, auto& targetId)
+			{
+				std::string result;
+				getline(ss, result);
+				size_t quotePos = result.find_first_of('"');
+				size_t quotePosEnd = result.find_last_of('"');
+				if(quotePos != std::string::npos && quotePosEnd != quotePos)
+				{
+					result = result.substr(quotePos + 1, quotePosEnd - quotePos - 1);
+					vertices.rbegin()->second.outgoingEdges.insert({targetId, result});
+				}
 			});
 		}
 
@@ -885,18 +1004,6 @@ namespace Graph
 		/**
 		 * @brief Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
-		 * @param colorEdgesBetween ids of vertices whose between edges will be coloured
-		 * @return true if export was sucessful, false otherwise
-		 */
-		/*bool exportToDot(const std::string& filePath)
-		{
-			return this->_exportToDot(filePath, [](auto&, auto&, auto&, auto&) { });
-		}*/
-
-
-		/**
-		 * @brief Exports graph to dot format with ids as vertex names
-		 * @param filePath path to file
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
 		 */
@@ -968,6 +1075,18 @@ namespace Graph
 		}
 #endif
 	};
+	
+	template<typename V, typename E>
+	bool operator==(const AbstractGraph<V,E>& lhs, const AbstractGraph<V,E>& rhs)
+	{
+		return lhs.directed == rhs.directed && lhs.vertices == rhs.vertices;
+	}
+	
+	template<typename V, typename E>
+	bool operator!=(const AbstractGraph<V,E>& lhs, const AbstractGraph<V,E>& rhs)
+	{
+		return !(lhs == rhs);
+	}
 }
 
 #undef GRAPH_DEBUG

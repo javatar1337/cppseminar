@@ -476,5 +476,64 @@ int main()
 		kruskalTest.exportToDot("kruskalTestNonColoured.txt");
 		kruskalTest.exportToDot("kruskalTestColoured.txt", kruskalMST(kruskalTest));
 	}
+	
+	someGraphDir.saveToFile("dirSave.txt");
+	
+	Graph::Graph<size_t, size_t>  someGraphDirLoaded;
+	someGraphDirLoaded.loadFromFile("dirSave.txt");
+	
+	std::cout << "equal (should be 1): " <<  (someGraphDir == someGraphDirLoaded) << std::endl;
+	
+	example.saveToFile("exampleSave.txt");
+	Graph::Graph<int> exampleLoaded;
+	exampleLoaded.loadFromFile("exampleSave.txt");
+	
+	std::cout << "equal (should be 1): " <<  (exampleLoaded == example) << std::endl;
+	
+	Graph::Graph<std::string> someStringGraph;
+	first = someStringGraph.addVertex("First text");
+	second = someStringGraph.addVertex("Second text");
+	third = someStringGraph.addVertex("Secondtext");
+	
+	someStringGraph.addEdge(first, second);
+	someStringGraph.addEdge(second, third);
+	
+	someStringGraph.saveToFile("stringSaved.txt");
+	
+	Graph::Graph<std::string> someStringGraphLoaded;
+	someStringGraphLoaded.loadFromFile("stringSaved.txt");
+	
+	std::cout << "equal (should be 1): " << (someStringGraph == someStringGraphLoaded) << std::endl;
+	
+	Graph::Graph<std::string, size_t> someStringGraph2;
+	first = someStringGraph2.addVertex("First text");
+	second = someStringGraph2.addVertex("Secondtext");
+	third = someStringGraph2.addVertex("Second text");
+	
+	someStringGraph2.addEdge(first, second, 4);
+	someStringGraph2.addEdge(second, third, 5);
+	
+	someStringGraph2.saveToFile("stringSaved2.txt");
+	
+	Graph::Graph<std::string, size_t> someStringGraphLoaded2;
+	someStringGraphLoaded2.loadFromFile("stringSaved2.txt");
+	
+	std::cout << "equal (should be 1): " << (someStringGraph2 == someStringGraphLoaded2) << std::endl;
+	
+	Graph::Graph<std::string, std::string> someStringGraph3;
+	first = someStringGraph3.addVertex("First text");
+	second = someStringGraph3.addVertex("Secondtext");
+	third = someStringGraph3.addVertex("Second text");
+	
+	someStringGraph3.addEdge(first, second, "edge");
+	someStringGraph3.addEdge(second, third, "edge 2");
+	
+	someStringGraph3.saveToFile("stringSaved3.txt");
+	
+	Graph::Graph<std::string, std::string> someStringGraphLoaded3;
+	someStringGraphLoaded3.loadFromFile("stringSaved3.txt");
+	
+	std::cout << "equal (should be 1): " << (someStringGraph3 == someStringGraphLoaded3) << std::endl;
+	
 	return 0;
 }
