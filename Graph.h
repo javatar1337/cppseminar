@@ -78,6 +78,11 @@ namespace Graph
 			{
 				return value;
 			}
+
+			const std::map<size_t, E> & getOutgoingEdges() const
+			{
+				return outgoingEdges;
+			}
 		};
 
 		using vertexMap = std::map<size_t, Vertex >;
@@ -407,6 +412,21 @@ namespace Graph
 			}
 			return result;
 		}
+
+		/**
+		 * Get edges from vertex
+		 * @param source
+		 * @return edges
+		 */
+		std::map<size_t, E> getEdgesFrom(size_t source)
+		{
+			auto is_in = vertices.find(source);
+			if (is_in == vertices.end())
+			{
+				throw std::invalid_argument("vertex id not found");
+			}
+			return vertices.find(source)->second.getOutgoingEdges();
+		}		
 
 		/**
 		 * @brief Get value of given vertex

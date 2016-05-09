@@ -90,11 +90,11 @@ namespace Graph
 
 
 	/**
-	 * Depth-first search algorithm
-	 * @param graph graph
-	 * @param starting_vertex vertex to start search from, must be part of graph
-	 * @param f unary function
-	 */
+	* Depth-first search algorithm
+	* @param graph graph
+	* @param starting_vertex vertex to start search from, must be part of graph
+	* @param f unary function
+	*/
 	template<typename V, typename E, typename UnaryFunction>
 	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
@@ -306,4 +306,140 @@ namespace Graph
 
 	template<typename V>
 	std::vector<std::pair<size_t, size_t>> kruskalMST(const Graph<V, Unweight>& graph) = delete;
+
+	/**
+	* Djikstra algorithm
+	* @param graph graph
+	* @param source source vertex
+	* @param infinity max value of E
+	* @return map of distances and predecessors for shortest paths
+	*/
+	template<typename V, typename E>
+	std::pair<std::map<size_t, E>, std::map<size_t, size_t>> 
+	dijkstraAll(const Graph<V, E>& graph, size_t source, E infinity = std::numeric_limits<E>::max())
+	{
+		auto vertices = graph.getVerticesMap();
+		if (vertices.find(source) == vertices.end())
+		{
+			throw std::invalid_argument("source vertex id not found");
+		}
+		std::set<size_t> vertex_queue;
+		std::map<size_t, E> distance = graph.template getVerticesIdsMap<E>();
+		std::map<size_t, size_t> predecessors = graph.template getVerticesIdsMap<size_t>();
+		auto graphEdges = graph.getEdgesPositions();
+
+		for (auto & d : distance)
+		{
+			d.second = infinity;
+		}
+
+		for (auto & p : predecessors)
+		{
+			p.second = p.first;
+		}
+		for (auto & v : vertices)
+		{
+			vertex_queue.insert(v.first);
+		}
+		distance.at(source) = E();
+		
+		while (!vertex_queue.empty())
+		{
+			size_t u = *(vertex_queue.begin());
+			for (auto & v : vertex_queue)
+			{
+				if (distance.at(v) < distance.at(u)) u = v;
+			}
+			vertex_queue.erase(u);
+			for (auto & w : graph.getNeighbours(u))
+			{
+				if (vertex_queue.find(w) != vertex_queue.end())
+				{
+					E alt = distance.at(u) + graph.getEdgeValue(u, w);
+					if (alt < distance.at(w))
+					{
+						distance.at(w) = alt;
+						predecessors.at(w) = u;
+					}
+				}
+			}
+		}
+		return {distance, predecessors};
+	}
+
+	/**
+	* Djikstra algorithm
+	* @param graph graph
+	* @param source source vertex
+	* @param target target vertex
+	* @param infinity max value of E
+	* @return distance and shortest path
+	*/
+	template<typename V, typename E>
+	std::pair<E, std::vector<size_t>>
+	dijkstra(const Graph<V, E>& graph, size_t source, size_t target, E infinity = std::numeric_limits<E>::max())
+	{
+		auto vertices = graph.getVerticesMap();
+		if (vertices.find(source) == vertices.end())
+		{
+			throw std::invalid_argument("source vertex id not found");
+		}
+		if (vertices.find(target) == vertices.end())
+		{
+			throw std::invalid_argument("target vertex id not found");
+		}
+		std::set<size_t> vertex_queue;
+		std::map<size_t, E> distance = graph.template getVerticesIdsMap<E>();
+		std::map<size_t, size_t> predecessors = graph.template getVerticesIdsMap<size_t>();
+		auto graphEdges = graph.getEdgesPositions();
+
+		for (auto & d : distance)
+		{
+			d.second = infinity;
+		}
+
+		for (auto & p : predecessors)
+		{
+			p.second = p.first;
+		}
+		for (auto & v : vertices)
+		{
+			vertex_queue.insert(v.first);
+		}
+		distance.at(source) = E();
+
+		size_t u;
+		while (!vertex_queue.empty())
+		{
+			u = *(vertex_queue.begin());
+			for (auto & v : vertex_queue)
+			{
+				if (distance.at(v) < distance.at(u)) u = v;
+			}
+			vertex_queue.erase(u);
+			if (u == target) break;
+			for (auto & w : graph.getNeighbours(u))
+			{
+				if (vertex_queue.find(w) != vertex_queue.end())
+				{
+					E alt = distance.at(u) + graph.getEdgeValue(u, w);
+					if (alt < distance.at(w))
+					{
+						distance.at(w) = alt;
+						predecessors.at(w) = u;
+					}
+				}
+			}
+		}
+		vector<size_t> result;
+		u = target;
+		while (predecessors.at(u) != u)
+		{
+			result.push_back(u);
+			u = predecessors.at(u);
+		}
+		result.push_back(u);
+		std::reverse(result.begin(), result.end());
+		return{ distance.at(target), result };
+	}
 }

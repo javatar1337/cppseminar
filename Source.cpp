@@ -339,6 +339,26 @@ int main()
 		std::cout << v << std::endl;
 	std::cout << std::endl;
 
+	std::cout << "dijkstra: " << std::endl;
+	auto dykestra = Graph::dijkstra(someGraphDir, someGraphVertices[0], someGraphVertices[7]);
+	std::cout << "value: "<< dykestra.first << std::endl;
+	std::cout << "path: ";
+	for (auto& v : dykestra.second)
+		std::cout << v << std::endl;
+	std::cout << "end dijkstra" << std::endl;
+
+	std::cout << "dir" << std::endl;
+	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[0], someGraphVertices[1]).first << std::endl;
+	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[0], someGraphVertices[8]).first << std::endl;
+	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[0], someGraphVertices[0]).first << std::endl;
+	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[6], someGraphVertices[1]).first << std::endl;
+	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[3], someGraphVertices[2]).first << std::endl;
+	for (auto & x : Graph::dijkstra(someGraphDir, someGraphVertices[3], someGraphVertices[2]).second)
+	{
+		std::cout << x << std::endl;
+	}
+	std::cout << Graph::dijkstra(someGraphDir, someGraphVertices[7], someGraphVertices[3]).first << std::endl;
+	std::cout << "end" << std::endl;
 	// Exports dot file with colored path from source to destination
 
 	someGraphDir.exportToDot("biggerGraphDirColored.txt", pathVerts);
