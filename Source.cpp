@@ -250,7 +250,7 @@ int main()
 	//pokus
 	Graph::Graph<int> example;
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 11; i++)
 	{
 		example.addVertex(i);
 	}
@@ -275,11 +275,20 @@ int main()
 		std::cout << a << std::endl;
 	});
 	cout << "BFS" << endl;
-	Graph::BFS(example, size_t(0), [](const int & a)
+	auto bfs_result = Graph::BFS(example, size_t(0), [](const int & a)
 	{
 		std::cout << a << std::endl;
 	});
-
+	std::cout << "bfs distances" << std::endl;
+	for (auto & i : bfs_result.first)
+	{
+		std::cout << i.first << ": " << i.second << endl;
+	}
+	std::cout << "bfs parents" << std::endl;
+	for (auto & i : bfs_result.second)
+	{
+		std::cout << i.first << ": " << i.second << endl;
+	}
 	auto exampleEdges = example.getEdgesPositions(true);
 
 	for(auto& edge : exampleEdges)

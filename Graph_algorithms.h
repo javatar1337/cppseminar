@@ -155,23 +155,26 @@ namespace Graph
 	* @param graph graph
 	* @param starting_vertex vertex to start search from, must be part of graph
 	* @param f unary function
+	* @return distances and paths to discovered vertices(if graph is enweighted, then shortest paths)
 	*/
 	template<typename V, typename E, typename UnaryFunction>
-	void BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
+	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>> BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
-		std::map<size_t, bool> discovered;
+		std::map<size_t, size_t> distance;
+		std::map<size_t, size_t> parent;
 		auto vertmap = graph.getVerticesMap();
 		if (vertmap.find(starting_vertex) == vertmap.end())
 		{
-			return;
+			return{distance, parent};
 		}
 		for (auto & ver : graph.getVerticesMap())
 		{
-			discovered.insert({ ver.first, false });
+			distance.insert({ ver.first, SIZE_MAX});
+			parent.insert({ver.first, ver.first});
 		}
 		std::queue<size_t> vertex_queue;
 		vertex_queue.push(starting_vertex);
-		discovered.find(starting_vertex)->second = true;
+		distance.find(starting_vertex)->second = 0;
 		while (!vertex_queue.empty())
 		{
 			size_t v = vertex_queue.front();
@@ -179,14 +182,15 @@ namespace Graph
 			f(graph.getVertexValue(v));
 			for (auto & edd : graph.getNeighbours(v))
 			{
-				if (!discovered.find(edd)->second)
+				if (distance.find(edd)->second == SIZE_MAX)
 				{
+					distance.find(edd)->second = distance.find(v)->second + 1;
+					parent.find(edd)->second = v;
 					vertex_queue.push(edd);
-					discovered.find(edd)->second = true;
 				}
 			}
 		}
-		return;
+		return{distance, parent};
 	}
 
 	/**
@@ -331,7 +335,7 @@ namespace Graph
 	std::vector<std::pair<size_t, size_t>> kruskalMST(const Graph<V, Unweight>& graph) = delete;
 
 	/**
-	* Djikstra algorithm
+	* Dijkstra algorithm
 	* @param graph graph
 	* @param source source vertex
 	* @param infinity max value of E
@@ -392,7 +396,7 @@ namespace Graph
 	}
 
 	/**
-	* Djikstra algorithm
+	* Dijkstra algorithm
 	* @param graph graph
 	* @param source source vertex
 	* @param target target vertex
@@ -527,4 +531,20 @@ namespace Graph
 
 	template<typename V>
 	std::vector<std::pair<size_t, size_t>> prim(const Graph<V, Unweight>& graph, size_t source) = delete;
+
+	/**
+	 * Edmond Karp algorithm
+	 * @param graph graph
+	 * @param source source vertex
+	 * @param sink sink vertex
+	 * @return maximum flow, list of flow edges
+	 */
+	template<typename V, typename E>
+	std::pair<E, std::vector<std::tuple<size_t, size_t, E>>> edmondKarp_maxFlow(const Graph<V, E>& graph, size_t source, size_t sink)
+	{
+		E max_flow = E();
+		std::vector<std::tuple<size_t, size_t, E>> flows;
+
+		return{ max_flow, flows };
+	}
 }
