@@ -751,6 +751,28 @@ namespace Graph
 			}
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
 		}
+		
+		/**
+		* Get value of edge
+		* @param from vertex from
+		* @param to vertex to
+		* @throws invalid_argument exception if either id is invalid
+		* @return value of edge
+		*/
+		E& getEdgeValue(size_t from, size_t to)
+		{
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end())
+			{
+				throw std::invalid_argument("\"from\" vertex id not found");
+			}
+			if (is_in_to == vertices.end())
+			{
+				throw std::invalid_argument("\"to\" vertex id not found");
+			}
+			return vertices.find(from)->second.outgoingEdges.find(to)->second;
+		}
 
 		/**
 		* Update value of edge

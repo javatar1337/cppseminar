@@ -551,6 +551,47 @@ int main()
 	someStringGraphLoaded3.loadFromFile("stringSaved3.txt");
 	
 	std::cout << "equal (should be 1): " << (someStringGraph3 == someStringGraphLoaded3) << std::endl;
-	
+	{
+		Graph::Graph<char, size_t> flowGraph;
+		auto a = flowGraph.addVertex('A');
+		auto b = flowGraph.addVertex('B');
+		auto c = flowGraph.addVertex('C');
+		auto d = flowGraph.addVertex('D');
+		auto s = flowGraph.addVertex('S');
+		auto t = flowGraph.addVertex('T');
+		
+		flowGraph.addEdge(s,a,10);
+		flowGraph.addEdge(s,b,10);
+		flowGraph.addEdge(a,b,2);
+		flowGraph.addEdge(a,d,8);
+		flowGraph.addEdge(b,d,9);
+		flowGraph.addEdge(a,c,4);
+		flowGraph.addEdge(d,c,6);
+		flowGraph.addEdge(d,t,10);
+		flowGraph.addEdge(c,t,10);
+		
+		std::cout << "Max flow (should be 19): " << edmondsKarpMaxFlow(flowGraph, s, t).first << std::endl;
+		
+		Graph::Graph<size_t, size_t> flowGraph2;
+		auto v0 = flowGraph2.addVertex(0);
+		auto v1 = flowGraph2.addVertex(1);
+		auto v2 = flowGraph2.addVertex(2);
+		auto v3 = flowGraph2.addVertex(3);
+		auto v4 = flowGraph2.addVertex(4);
+		auto v5 = flowGraph2.addVertex(5);
+		
+		flowGraph2.addEdge(v0, v1, 16);
+		flowGraph2.addEdge(v0, v2, 13);
+		flowGraph2.addEdge(v1, v2, 10);
+		flowGraph2.addEdge(v2, v1, 4);
+		flowGraph2.addEdge(v1, v3, 12);
+		flowGraph2.addEdge(v3, v2, 9);
+		flowGraph2.addEdge(v2, v4, 14);
+		flowGraph2.addEdge(v4, v3, 7);
+		flowGraph2.addEdge(v4, v5, 4);
+		flowGraph2.addEdge(v3, v5, 20);
+		
+		std::cout << "Max flow (should be 23): " << edmondsKarpMaxFlow(flowGraph2, v0, v5).first << std::endl;
+	}
 	return 0;
 }

@@ -158,7 +158,8 @@ namespace Graph
 	* @return distances and paths to discovered vertices(if graph is enweighted, then shortest paths)
 	*/
 	template<typename V, typename E, typename UnaryFunction>
-	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>> BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
+	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>> 
+	BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
 		std::map<size_t, size_t> distance;
 		std::map<size_t, size_t> parent;
@@ -201,7 +202,8 @@ namespace Graph
 	 * @return pair of maps of <distances of each vertex from source vertex (infinity if no path exists) AND predecessors>
 	 */
 	template<typename V, typename E>
-	std::pair<std::map<size_t, E>, std::map<size_t, size_t>> bellmanFord(const Graph<V,E>& graph, size_t startVertex, E infinity = std::numeric_limits<E>::max())
+	std::pair<std::map<size_t, E>, std::map<size_t, size_t>> 
+	bellmanFord(const Graph<V,E>& graph, size_t startVertex, E infinity = std::numeric_limits<E>::max())
 	{
 		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
 		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
@@ -307,7 +309,7 @@ namespace Graph
 	{
 		if(graph.isDirected())
 		{
-			throw std::invalid_argument("Kruskal algorithm is defined only for undirected graphs. For directed use Edmond/Karps.");
+			throw std::invalid_argument("Kruskal algorithm is defined only for undirected graphs.");
 		}
 
 		std::vector<std::pair<size_t, size_t>> result;
@@ -533,18 +535,84 @@ namespace Graph
 	std::vector<std::pair<size_t, size_t>> prim(const Graph<V, Unweight>& graph, size_t source) = delete;
 
 	/**
-	 * Edmond Karp algorithm
-	 * @param graph graph
+	 * Edmonds-Karp algorithm
+	 * @param graph graph (must have integral type of edges)
 	 * @param source source vertex
 	 * @param sink sink vertex
-	 * @return maximum flow, list of flow edges
+	 * @return maximum flow, garph with edges values equal to their flow
 	 */
 	template<typename V, typename E>
-	std::pair<E, std::vector<std::tuple<size_t, size_t, E>>> edmondKarp_maxFlow(const Graph<V, E>& graph, size_t source, size_t sink)
+	typename std::enable_if_t<std::is_integral<E>::value, std::pair<E, Graph<V,E>>>
+	edmondsKarpMaxFlow(Graph<V, E> graph, size_t source, size_t sink)
 	{
-		E max_flow = E();
-		std::vector<std::tuple<size_t, size_t, E>> flows;
+		// Capacity graph
+		auto edges = graph.getEdgesPositions();
+		
+		for(auto& e : edges)
+		{
+			if(!graph.adjacent(e.second,e.first))
+			{
+				graph.addEdge(e.second, e.first, E());
+			}
+		}
+		
+		// Flow graph
+		Graph<V,E> graphFlow = graph;
+		
+		for(auto& e : edges)
+		{
+			graphFlow.updateEdgeValue(e.first, e.second, E());
+			graphFlow.updateEdgeValue(e.second, e.first, E());
+		}
+		
+		E maxFlow{};
+		
+		while(true)
+		{
+			std::queue<size_t> q;
+			q.push(source);
+			// key = destination vertex; value = source vertex of edge going to key
+			std::map<size_t, size_t> pred;
+			
+			while(!q.empty())
+			{
+				size_t curr = q.front();
+				q.pop();
+				auto outEdges = graph.getEdgesFrom(curr);
+ 				for(auto& e : outEdges)
+				{
+					if(pred.find(e.first) == pred.end() && e.first != source && 
+						graph.getEdgeValue(curr, e.first) > graphFlow.getEdgeValue(curr, e.first))
+					{
+						pred.insert({ e.first, curr });
+						q.push(e.first);
+					}
+				}
+			}
+			
+			if(pred.find(sink) == pred.end()) { break; }
 
-		return{ max_flow, flows };
+			E df = std::numeric_limits<E>::max();
+		
+			for(auto e = sink; e != source; e = pred.at(e))
+			{
+				df = std::min(df, graph.getEdgeValue(pred.at(e), e) - graphFlow.getEdgeValue(pred.at(e), e));
+			}
+			
+			for(auto e = sink; e != source; e = pred.at(e))
+			{
+				graphFlow.updateEdgeValue(pred.at(e), e, 
+						graphFlow.getEdgeValue(pred.at(e), e) + df);
+				graphFlow.updateEdgeValue(e, pred.at(e), 
+						graphFlow.getEdgeValue(e, pred.at(e)) - df);
+			}
+			
+			maxFlow += df;
+		}
+
+		return { maxFlow, graphFlow };
 	}
+	
+	template<typename V>
+	std::pair<Unweight, Graph<V,Unweight>> edmondsKarpMaxFlow(Graph<V, Unweight> graph, size_t source, size_t sink) = delete;
 }
