@@ -222,7 +222,7 @@ void mstOperations()
 	for(auto& a : primSet)
 	{
 		std::cout << a.first << " - " << a.second << std::endl;
-		//sum += graph.getEdgeValue(a.first, a.second); TODO
+		sum += graph.getEdgeValue(a.first, a.second);
 	}
 	std::cout << sum << std::endl;
 	

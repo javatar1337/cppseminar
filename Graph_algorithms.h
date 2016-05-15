@@ -518,7 +518,7 @@ namespace Graph
 				if (vertices.find(w.first) == vertices.end()) edges.insert(std::make_tuple(v, w.first, w.second));
 			}
 			auto edge = (*std::min_element(edges.begin(), edges.end(), helper::CompareThird<E>()));
-			if (result.find({ std::get<1>(edge), v }) == result.end()) result.insert({ v, std::get<1>(edge) });
+			if (result.find({ std::get<1>(edge), std::get<0>(edge) }) == result.end()) result.insert({ std::get<0>(edge), std::get<1>(edge) });
 			vertices.insert(std::get<1>(edge));
 			edges.erase(edge);
 			v = std::get<1>(edge);
