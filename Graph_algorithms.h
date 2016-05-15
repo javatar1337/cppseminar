@@ -494,7 +494,7 @@ namespace Graph
 	* Prim's algorithm for computing minimum spanning tree (only for connected undirected weighted graphs)
 	* @param graph
 	* @param source vertex
-	* @return vector of source/end vertices of MST edges
+	* @return set of source/end vertices of MST edges
 	*/
 	template<typename V, typename E>
 	std::set<std::pair<size_t, size_t>> prim(const Graph<V, E>& graph, size_t source)
@@ -530,7 +530,7 @@ namespace Graph
 	/**
 	* Prim's algorithm for computing minimum spanning tree (only for connected undirected weighted graphs)
 	* @param graph
-	* @return vector of source/end vertices of MST edges
+	* @return set of source/end vertices of MST edges
 	*/
 	template<typename V, typename E>
 	std::set<std::pair<size_t, size_t>> prim(const Graph<V, E>& graph)

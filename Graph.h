@@ -613,7 +613,8 @@ namespace Graph
 		*/
 		size_t removeEdge(size_t from, size_t to)
 		{
-			return vertices.find(from)->second.outgoingEdges.erase(to);
+			return vertices.find(from)->second.outgoingEdges.erase(to) +
+				   (directed ? 0 : vertices.find(to)->second.outgoingEdges.erase(from));
 		}
 
 		/**
@@ -666,6 +667,7 @@ namespace Graph
 
 		void listVerticesToStream(std::ostream& stream = std::cout) const
 		{
+			stream << "Vertices: " << std::endl;
 			stream << listVertices() << std::endl;
 		}
 
@@ -795,6 +797,12 @@ namespace Graph
 			{
 				throw std::invalid_argument("\"to\" vertex id not found");
 			}
+			if(vertices.find(from)->second.outgoingEdges.find(to) == 
+				vertices.find(from)->second.outgoingEdges.end())
+			{
+				throw std::invalid_argument("edge does no exist");
+			}
+			
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
 		}
 
@@ -817,6 +825,12 @@ namespace Graph
 			{
 				throw std::invalid_argument("\"to\" vertex id not found");
 			}
+			if(vertices.find(from)->second.outgoingEdges.find(to) == 
+				vertices.find(from)->second.outgoingEdges.end())
+			{
+				throw std::invalid_argument("edge does no exist");
+			}
+			
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
 		}
 
@@ -1001,6 +1015,7 @@ namespace Graph
 
 		void listEdgesToStream(std::ostream& stream = std::cout) const
 		{
+			stream << "Edges: " << std::endl;
 			stream << listEdges();
 		}
 #endif
@@ -1151,6 +1166,7 @@ namespace Graph
 
 		void listEdgesToStream(std::ostream& stream = std::cout) const
 		{
+			stream << "Edges: " << std::endl;
 			stream << listEdges();
 		}
 #endif
