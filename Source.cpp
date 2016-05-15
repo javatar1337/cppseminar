@@ -405,7 +405,7 @@ int main()
 	example.exportToDot("exampleDot.txt");
 
 	std::cout << "Union" << std::endl;
-	Graph::UnionFind fnd({1, 2, 3, 4, 5, 6, 7, 8});
+	Graph::helper::UnionFind fnd({1, 2, 3, 4, 5, 6, 7, 8});
 
 	for(size_t i = 1; i <= fnd.size(); ++i)
 	{
@@ -493,63 +493,63 @@ int main()
 		kruskalTest.exportToDot("kruskalTestNonColoured.txt");
 		kruskalTest.exportToDot("kruskalTestColoured.txt", kruskalMST(kruskalTest));
 	}
-	
+
 	someGraphDir.saveToFile("dirSave.txt");
-	
+
 	Graph::Graph<size_t, size_t>  someGraphDirLoaded;
 	someGraphDirLoaded.loadFromFile("dirSave.txt");
-	
+
 	std::cout << "equal (should be 1): " <<  (someGraphDir == someGraphDirLoaded) << std::endl;
-	
+
 	example.saveToFile("exampleSave.txt");
 	Graph::Graph<int> exampleLoaded;
 	exampleLoaded.loadFromFile("exampleSave.txt");
-	
+
 	std::cout << "equal (should be 1): " <<  (exampleLoaded == example) << std::endl;
-	
+
 	Graph::Graph<std::string> someStringGraph;
 	first = someStringGraph.addVertex("First text");
 	second = someStringGraph.addVertex("Second text");
 	third = someStringGraph.addVertex("Secondtext");
-	
+
 	someStringGraph.addEdge(first, second);
 	someStringGraph.addEdge(second, third);
-	
+
 	someStringGraph.saveToFile("stringSaved.txt");
-	
+
 	Graph::Graph<std::string> someStringGraphLoaded;
 	someStringGraphLoaded.loadFromFile("stringSaved.txt");
-	
+
 	std::cout << "equal (should be 1): " << (someStringGraph == someStringGraphLoaded) << std::endl;
-	
+
 	Graph::Graph<std::string, size_t> someStringGraph2;
 	first = someStringGraph2.addVertex("First text");
 	second = someStringGraph2.addVertex("Secondtext");
 	third = someStringGraph2.addVertex("Second text");
-	
+
 	someStringGraph2.addEdge(first, second, 4);
 	someStringGraph2.addEdge(second, third, 5);
-	
+
 	someStringGraph2.saveToFile("stringSaved2.txt");
-	
+
 	Graph::Graph<std::string, size_t> someStringGraphLoaded2;
 	someStringGraphLoaded2.loadFromFile("stringSaved2.txt");
-	
+
 	std::cout << "equal (should be 1): " << (someStringGraph2 == someStringGraphLoaded2) << std::endl;
-	
+
 	Graph::Graph<std::string, std::string> someStringGraph3;
 	first = someStringGraph3.addVertex("First text");
 	second = someStringGraph3.addVertex("Secondtext");
 	third = someStringGraph3.addVertex("Second text");
-	
+
 	someStringGraph3.addEdge(first, second, "edge");
 	someStringGraph3.addEdge(second, third, "edge 2");
-	
+
 	someStringGraph3.saveToFile("stringSaved3.txt");
-	
+
 	Graph::Graph<std::string, std::string> someStringGraphLoaded3;
 	someStringGraphLoaded3.loadFromFile("stringSaved3.txt");
-	
+
 	std::cout << "equal (should be 1): " << (someStringGraph3 == someStringGraphLoaded3) << std::endl;
 	{
 		Graph::Graph<char, size_t> flowGraph;
@@ -559,7 +559,7 @@ int main()
 		auto d = flowGraph.addVertex('D');
 		auto s = flowGraph.addVertex('S');
 		auto t = flowGraph.addVertex('T');
-		
+
 		flowGraph.addEdge(s,a,10);
 		flowGraph.addEdge(s,b,10);
 		flowGraph.addEdge(a,b,2);
@@ -569,9 +569,9 @@ int main()
 		flowGraph.addEdge(d,c,6);
 		flowGraph.addEdge(d,t,10);
 		flowGraph.addEdge(c,t,10);
-		
+
 		std::cout << "Max flow (should be 19): " << edmondsKarpMaxFlow(flowGraph, s, t).first << std::endl;
-		
+
 		Graph::Graph<size_t, size_t> flowGraph2;
 		auto v0 = flowGraph2.addVertex(0);
 		auto v1 = flowGraph2.addVertex(1);
@@ -579,7 +579,7 @@ int main()
 		auto v3 = flowGraph2.addVertex(3);
 		auto v4 = flowGraph2.addVertex(4);
 		auto v5 = flowGraph2.addVertex(5);
-		
+
 		flowGraph2.addEdge(v0, v1, 16);
 		flowGraph2.addEdge(v0, v2, 13);
 		flowGraph2.addEdge(v1, v2, 10);
@@ -590,7 +590,7 @@ int main()
 		flowGraph2.addEdge(v4, v3, 7);
 		flowGraph2.addEdge(v4, v5, 4);
 		flowGraph2.addEdge(v3, v5, 20);
-		
+
 		std::cout << "Max flow (should be 23): " << edmondsKarpMaxFlow(flowGraph2, v0, v5).first << std::endl;
 	}
 	return 0;

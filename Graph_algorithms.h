@@ -12,105 +12,111 @@
 namespace Graph
 {
 	/**
-	 * Union-find data structure
-	 */
-	class UnionFind
+	* Namespace for additional helper stuff
+	*/
+	namespace helper
 	{
-	private:
-		std::map<size_t, size_t> mVertices;
-		std::map<size_t, size_t> mSetSizes;
-	public:
-		UnionFind(const std::vector<size_t>& vertices)
+		/**
+		 * Union-find data structure
+		 */
+		class UnionFind
 		{
-			for(auto& a : vertices)
+		private:
+			std::map<size_t, size_t> mVertices;
+			std::map<size_t, size_t> mSetSizes;
+		public:
+			UnionFind(const std::vector<size_t>& vertices)
 			{
-				mVertices.insert({a, a});
-				mSetSizes.insert({a, 1});
-			}
-		}
-
-		template<typename T>
-		UnionFind(const std::map<size_t, T>& verticesMap)
-		{
-			std::vector<size_t> vertices;
-
-			for(auto& v : verticesMap)
-			{
-				vertices.push_back(v.first);
+				for(auto& a : vertices)
+				{
+					mVertices.insert({a, a});
+					mSetSizes.insert({a, 1});
+				}
 			}
 
-			for(auto& a : vertices)
+			template<typename T>
+			UnionFind(const std::map<size_t, T>& verticesMap)
 			{
-				mVertices.insert({a, a});
-				mSetSizes.insert({a, 1});
-			}
-		}
+				std::vector<size_t> vertices;
 
-		size_t find(size_t item)
-		{
-			size_t newSize = 1;
-			auto it = mVertices.find(item);
+				for(auto& v : verticesMap)
+				{
+					vertices.push_back(v.first);
+				}
 
-			if(it == mVertices.end())
-			{
-				throw std::invalid_argument("Requested item does not exist.");
-			}
-
-			size_t parent = it->second;
-
-			while(parent != mVertices.find(parent)->second)
-			{
-				parent = mVertices.find(parent)->second;
-				++newSize;
+				for(auto& a : vertices)
+				{
+					mVertices.insert({a, a});
+					mSetSizes.insert({a, 1});
+				}
 			}
 
-			mSetSizes.at(item) = newSize;
-			return parent;
-		}
-
-		void unionSets(size_t first, size_t second)
-		{
-			size_t firstRoot = find(first);
-			size_t secondRoot = find(second);
-
-			if(mSetSizes.at(first) < mSetSizes.at(second))
+			size_t find(size_t item)
 			{
-				mVertices.find(firstRoot)->second = secondRoot;
-				mSetSizes.at(secondRoot) = mSetSizes.at(firstRoot);
+				size_t newSize = 1;
+				auto it = mVertices.find(item);
+
+				if(it == mVertices.end())
+				{
+					throw std::invalid_argument("Requested item does not exist.");
+				}
+
+				size_t parent = it->second;
+
+				while(parent != mVertices.find(parent)->second)
+				{
+					parent = mVertices.find(parent)->second;
+					++newSize;
+				}
+
+				mSetSizes.at(item) = newSize;
+				return parent;
 			}
-			else
+
+			void unionSets(size_t first, size_t second)
 			{
-				mVertices.find(secondRoot)->second = firstRoot;
-				mSetSizes.at(firstRoot) = mSetSizes.at(secondRoot);
+				size_t firstRoot = find(first);
+				size_t secondRoot = find(second);
+
+				if(mSetSizes.at(first) < mSetSizes.at(second))
+				{
+					mVertices.find(firstRoot)->second = secondRoot;
+					mSetSizes.at(secondRoot) = mSetSizes.at(firstRoot);
+				}
+				else
+				{
+					mVertices.find(secondRoot)->second = firstRoot;
+					mSetSizes.at(firstRoot) = mSetSizes.at(secondRoot);
+				}
 			}
-		}
 
-		size_t size() const
-		{
-			return mVertices.size();
-		}
-	};
+			size_t size() const
+			{
+				return mVertices.size();
+			}
+		};
 
-	template<typename E>
-	struct CompareSecond
-	{
-		bool operator()(const std::pair<std::size_t, E>& left, const std::pair<std::size_t, E>& right) const
+		template<typename E>
+		struct CompareSecond
 		{
-			return left.second < right.second;
-		}
-	};
+			bool operator()(const std::pair<std::size_t, E>& left, const std::pair<std::size_t, E>& right) const
+			{
+				return left.second < right.second;
+			}
+		};
 
-	template<typename E>
-	struct CompareThird
-	{
-		bool operator()(const std::tuple<size_t, size_t, E>& left, const std::tuple<size_t, size_t, E>& right) const
+		template<typename E>
+		struct CompareThird
 		{
-			return (std::get<2>(left) < std::get<2>(right)) && 
-				(
-					((std::get<0>(left))!=std::get<1>(left)) && ((std::get<0>(right)) != std::get<1>(right))
-				);
-		}
-	};
+			bool operator()(const std::tuple<size_t, size_t, E>& left, const std::tuple<size_t, size_t, E>& right) const
+			{
+				return (std::get<2>(left) < std::get<2>(right)) &&
+				       (
+				           ((std::get<0>(left))!=std::get<1>(left)) && ((std::get<0>(right)) != std::get<1>(right))
+				       );
+			}
+		};
+	}
 
 	/**
 	* Depth-first search algorithm
@@ -158,7 +164,7 @@ namespace Graph
 	* @return distances and paths to discovered vertices(if graph is enweighted, then shortest paths)
 	*/
 	template<typename V, typename E, typename UnaryFunction>
-	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>> 
+	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>>
 	BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
 		std::map<size_t, size_t> distance;
@@ -166,7 +172,7 @@ namespace Graph
 		auto vertmap = graph.getVerticesMap();
 		if (vertmap.find(starting_vertex) == vertmap.end())
 		{
-			return{distance, parent};
+			return {distance, parent};
 		}
 		for (auto & ver : graph.getVerticesMap())
 		{
@@ -191,18 +197,18 @@ namespace Graph
 				}
 			}
 		}
-		return{distance, parent};
+		return {distance, parent};
 	}
 
 	/**
-	 * @brief Bellman-Ford shortest path algorithm
+	 * Bellman-Ford shortest path algorithm
 	 * @param graph graph to find shortest paths in
 	 * @param startVertex source vertex
 	 * @param infinity infinity value
 	 * @return pair of maps of <distances of each vertex from source vertex (infinity if no path exists) AND predecessors>
 	 */
 	template<typename V, typename E>
-	std::pair<std::map<size_t, E>, std::map<size_t, size_t>> 
+	std::pair<std::map<size_t, E>, std::map<size_t, size_t>>
 	bellmanFord(const Graph<V,E>& graph, size_t startVertex, E infinity = std::numeric_limits<E>::max())
 	{
 		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
@@ -247,7 +253,7 @@ namespace Graph
 	}
 
 	/**
-	 * @brief Bellman-Ford shortest path algorithm
+	 * Bellman-Ford shortest path algorithm
 	 * @param graph graph to find shortest path in
 	 * @param startVertex source vertex
 	 * @param endVertex end vertex
@@ -261,7 +267,7 @@ namespace Graph
 	}
 
 	/**
-	 * @brief Bellman-Ford shortest path algorithm
+	 * Bellman-Ford shortest path algorithm
 	 * @param graph graph to find shortest path in
 	 * @param startVertex source vertex
 	 * @param endVertex end vertex
@@ -300,7 +306,7 @@ namespace Graph
 	std::vector<size_t> bellmanFordPathVertices(const Graph<V,Unweight>&, size_t, size_t, Unweight = Unweight()) = delete;
 
 	/**
-	 * @brief Kruskal algorithm for computing minimum spanning tree (only for undirected weighted graphs)
+	 * Kruskal algorithm for computing minimum spanning tree (only for undirected weighted graphs)
 	 * @param graph
 	 * @return vector of source/end vertices of MST edges
 	 */
@@ -319,7 +325,7 @@ namespace Graph
 			return std::get<2>(a) < std::get<2>(b);
 		} );
 
-		UnionFind uf(graph.getVerticesMap());
+		helper::UnionFind uf(graph.getVerticesMap());
 
 		for(auto& edge : edges)
 		{
@@ -344,7 +350,7 @@ namespace Graph
 	* @return map of distances and predecessors for shortest paths
 	*/
 	template<typename V, typename E>
-	std::pair<std::map<size_t, E>, std::map<size_t, size_t>> 
+	std::pair<std::map<size_t, E>, std::map<size_t, size_t>>
 	dijkstraAll(const Graph<V, E>& graph, size_t source, E infinity = std::numeric_limits<E>::max())
 	{
 		auto vertices = graph.getVerticesMap();
@@ -371,7 +377,7 @@ namespace Graph
 			vertex_queue.insert(v.first);
 		}
 		distance.at(source) = E();
-		
+
 		while (!vertex_queue.empty())
 		{
 			std::map<size_t, E> vqm;
@@ -379,7 +385,7 @@ namespace Graph
 			{
 				vqm.insert({y, distance.at(y)});
 			}
-			size_t u = (*std::min_element(vqm.begin(), vqm.end(), CompareSecond<E>())).first;
+			size_t u = (*std::min_element(vqm.begin(), vqm.end(), helper::CompareSecond<E>())).first;
 			vertex_queue.erase(u);
 			for (auto & w : graph.getNeighbours(u))
 			{
@@ -446,7 +452,7 @@ namespace Graph
 			{
 				vqm.insert({ y, distance.at(y) });
 			}
-			u = (*std::min_element(vqm.begin(), vqm.end(), CompareSecond<E>())).first;
+			u = (*std::min_element(vqm.begin(), vqm.end(), helper::CompareSecond<E>())).first;
 			for (auto & v : vertex_queue)
 			{
 				if (distance.at(v) < distance.at(u)) u = v;
@@ -475,7 +481,7 @@ namespace Graph
 		}
 		result.push_back(u);
 		std::reverse(result.begin(), result.end());
-		return{ distance.at(target), result };
+		return { distance.at(target), result };
 	}
 
 	/**
@@ -505,7 +511,7 @@ namespace Graph
 			{
 				if (vertices.find(w.first) == vertices.end()) edges.insert(std::make_tuple(v, w.first, w.second));
 			}
-			auto edge = (*std::min_element(edges.begin(), edges.end(), CompareThird<E>()));
+			auto edge = (*std::min_element(edges.begin(), edges.end(), helper::CompareThird<E>()));
 			if (result.find({ std::get<1>(edge), v }) == result.end()) result.insert({ v, std::get<1>(edge) });
 			vertices.insert(std::get<1>(edge));
 			edges.erase(edge);
@@ -542,12 +548,13 @@ namespace Graph
 	 * @return maximum flow, garph with edges values equal to their flow
 	 */
 	template<typename V, typename E>
-	typename std::enable_if_t<std::is_integral<E>::value, std::pair<E, Graph<V,E>>>
-	edmondsKarpMaxFlow(Graph<V, E> graph, size_t source, size_t sink)
+	std::pair<E, Graph<V,E>> edmondsKarpMaxFlow(Graph<V, E> graph, size_t source, size_t sink)
 	{
+		static_assert(std::is_integral<E>::value, "Edmonds Karp is defined only for integral values of edges.");
+		
 		// Capacity graph
 		auto edges = graph.getEdgesPositions();
-		
+
 		for(auto& e : edges)
 		{
 			if(!graph.adjacent(e.second,e.first))
@@ -555,64 +562,67 @@ namespace Graph
 				graph.addEdge(e.second, e.first, E());
 			}
 		}
-		
+
 		// Flow graph
 		Graph<V,E> graphFlow = graph;
-		
+
 		for(auto& e : edges)
 		{
 			graphFlow.updateEdgeValue(e.first, e.second, E());
 			graphFlow.updateEdgeValue(e.second, e.first, E());
 		}
-		
-		E maxFlow{};
-		
+
+		E maxFlow {};
+
 		while(true)
 		{
 			std::queue<size_t> q;
 			q.push(source);
 			// key = destination vertex; value = source vertex of edge going to key
 			std::map<size_t, size_t> pred;
-			
+
 			while(!q.empty())
 			{
 				size_t curr = q.front();
 				q.pop();
 				auto outEdges = graph.getEdgesFrom(curr);
- 				for(auto& e : outEdges)
+				for(auto& e : outEdges)
 				{
-					if(pred.find(e.first) == pred.end() && e.first != source && 
-						graph.getEdgeValue(curr, e.first) > graphFlow.getEdgeValue(curr, e.first))
+					if(pred.find(e.first) == pred.end() && e.first != source &&
+					        graph.getEdgeValue(curr, e.first) > graphFlow.getEdgeValue(curr, e.first))
 					{
 						pred.insert({ e.first, curr });
 						q.push(e.first);
 					}
 				}
 			}
-			
-			if(pred.find(sink) == pred.end()) { break; }
+
+			if(pred.find(sink) == pred.end())
+			{
+				break;
+			}
 
 			E df = std::numeric_limits<E>::max();
-		
+
 			for(auto e = sink; e != source; e = pred.at(e))
 			{
 				df = std::min(df, graph.getEdgeValue(pred.at(e), e) - graphFlow.getEdgeValue(pred.at(e), e));
 			}
-			
+
 			for(auto e = sink; e != source; e = pred.at(e))
 			{
-				graphFlow.updateEdgeValue(pred.at(e), e, 
-						graphFlow.getEdgeValue(pred.at(e), e) + df);
-				graphFlow.updateEdgeValue(e, pred.at(e), 
-						graphFlow.getEdgeValue(e, pred.at(e)) - df);
+				graphFlow.updateEdgeValue(pred.at(e), e,
+				                          graphFlow.getEdgeValue(pred.at(e), e) + df);
+				graphFlow.updateEdgeValue(e, pred.at(e),
+				                          graphFlow.getEdgeValue(e, pred.at(e)) - df);
 			}
-			
+
 			maxFlow += df;
 		}
 
 		return { maxFlow, graphFlow };
 	}
-	
+
 	template<typename V>
 	std::pair<Unweight, Graph<V,Unweight>> edmondsKarpMaxFlow(Graph<V, Unweight> graph, size_t source, size_t sink) = delete;
 }

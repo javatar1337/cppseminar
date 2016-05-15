@@ -12,13 +12,13 @@ namespace Graph
 	/**
 	 * Struct for template specialization
 	 */
-	struct Unweight 
-	{ 
+	struct Unweight
+	{
 		bool operator==(const Unweight&) const
 		{
 			return true;
 		}
-		
+
 		bool operator!=(const Unweight&) const
 		{
 			return false;
@@ -46,7 +46,7 @@ namespace Graph
 	protected:
 		template<typename TV, typename TE>
 		friend bool operator==(const AbstractGraph<TV,TE>&, const AbstractGraph<TV,TE>&);
-	
+
 		/**
 		 * Vertex class
 		 */
@@ -89,14 +89,14 @@ namespace Graph
 			{
 				return outgoingEdges;
 			}
-			
+
 			bool operator==(const Vertex& rhs) const
 			{
-				return value == rhs.value && 
-						id == rhs.id && 
-						outgoingEdges == rhs.outgoingEdges;
+				return value == rhs.value &&
+				       id == rhs.id &&
+				       outgoingEdges == rhs.outgoingEdges;
 			}
-			
+
 			bool operator!=(const Vertex& rhs) const
 			{
 				return !(*this == rhs);
@@ -147,6 +147,13 @@ namespace Graph
 			return toReturn.first->first;
 		}
 
+		/**
+		 * Method providing core saving functionality
+		 * @param filePath path to file
+		 * @param f function to be called on output file and edge
+		 * @param fv function to be called on output file and vertex
+		 * @return true if save was successful, false otherwise
+		 */
 		template<typename Func, typename FuncVert>
 		bool _saveToFileBase(const std::string& filePath, Func f, FuncVert fv) const
 		{
@@ -159,7 +166,7 @@ namespace Graph
 					outputFile << "id " << v.second.id << " ";
 					fv(outputFile, v);
 					outputFile << std::endl;
-					
+
 					for(const auto& e : v.second.outgoingEdges)
 					{
 						outputFile << e.first;
@@ -175,9 +182,13 @@ namespace Graph
 
 			return false;
 		}
-		
-		// Func takes outputFile and outgoingEdges element as params and performs operation on those
-		// String SFINAE for solving operator>> behaviour problem with spaces
+
+		/**
+		 * Method extending _saveToFileBase functionality by (thanks to SFINAE) having
+		 * different versions for std::string and other types
+		 * @param filePath path to output file
+		 * @param f function to call on output file and edge
+		 */
 		template<typename Func, typename TV = V>
 		typename std::enable_if_t<!std::is_same<TV, std::string>::value, bool>
 		_saveToFile(const std::string& filePath, Func f) const
@@ -187,7 +198,13 @@ namespace Graph
 				outputFile << v.second.value;
 			});
 		}
-		
+
+		/**
+		 * Method extending _saveToFileBase functionality by (thanks to SFINAE) having
+		 * different versions for std::string and other types
+		 * @param filePath path to output file
+		 * @param f function to call on output file and edge
+		 */
 		template<typename Func, typename TV = V>
 		typename std::enable_if_t<std::is_same<TV, std::string>::value, bool>
 		_saveToFile(const std::string& filePath, Func f) const
@@ -198,6 +215,14 @@ namespace Graph
 			});
 		}
 
+		/**
+		 * Basic method for loading graph from file
+		 * @param filePath path to file
+		 * @param isWeighted true if graph is weighted
+		 * @param f func which will be applied to stringstream and target id
+		 * @param fv func which will be applied to stringstream and vertex value
+		 * @return true if loading from file was successful
+		 */
 		template<typename Func, typename FuncVert>
 		bool _loadFromFileBase(const std::string& filePath, bool isWeighted, Func f, FuncVert fv)
 		{
@@ -266,7 +291,7 @@ namespace Graph
 						f(ss, targetId);
 					}
 
-					ss.flush(); // just to be safe
+					ss.flush();
 				}
 			}
 
@@ -278,9 +303,14 @@ namespace Graph
 			return retValue;
 		}
 
-		// Func takes stringstream and index of end vertex as params and performs operation on those
+		/**
+		 * Loads graph from file (SFINAE helps to choose correct type of loading method)
+		 * @param filePath path to file
+		 * @param isWeighted true if graph is weighted
+		 * @param f func taking stringstream and index of end vertex as params and performs operation on those
+		 */
 		template<typename Func, typename TV = V>
-		typename std::enable_if_t<!std::is_same<TV, std::string>::value, bool> 
+		typename std::enable_if_t<!std::is_same<TV, std::string>::value, bool>
 		_loadFromFile(const std::string& filePath, bool isWeighted, Func f)
 		{
 			return _loadFromFileBase(filePath, isWeighted, f, [](auto& ss, auto& v)
@@ -288,16 +318,22 @@ namespace Graph
 				ss >> v;
 			});
 		}
-		
+
+		/**
+		 * Loads graph from file (SFINAE helps to choose correct type of loading method)
+		 * @param filePath path to file
+		 * @param isWeighted true if graph is weighted
+		 * @param f func taking stringstream and index of end vertex as params and performs operation on those
+		 */
 		template<typename Func, typename TV = V>
-		typename std::enable_if_t<std::is_same<TV, std::string>::value, bool> 
+		typename std::enable_if_t<std::is_same<TV, std::string>::value, bool>
 		_loadFromFile(const std::string& filePath, bool isWeighted, Func f)
 		{
 			return _loadFromFileBase(filePath, isWeighted, f, [](auto& ss, auto& v)
 			{
 				std::string result;
 				getline(ss, result);
-				
+
 				size_t quotePos = result.find_first_of('"');
 				size_t quotePosEnd = result.find_last_of('"');
 				if(quotePos != std::string::npos && quotePosEnd != quotePos)
@@ -307,7 +343,12 @@ namespace Graph
 			});
 		}
 
-		// Func gets ofstream and edge value as params and (possibly) modifies them
+		/**
+		 * Base method for exporting graph to dot format
+		 * @param filePath path to output file
+		 * @param f function gets ofstream and edge value as params and (possibly) modifies them
+		 * @return true if export was successful
+		 */
 		template<typename Func>
 		bool _exportToDot(const std::string& filePath, Func f)
 		{
@@ -393,7 +434,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Get count of vertices in graph
+		 * Get count of vertices in graph
 		 * @return count of vertices
 		 */
 		size_t getVerticesCount() const
@@ -402,7 +443,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Checks if graph is directed
+		 * Checks if graph is directed
 		 * @return true if directed, false otherwise
 		 */
 		bool isDirected() const
@@ -410,10 +451,8 @@ namespace Graph
 			return directed;
 		}
 
-		// NOTE getVerticesValues removed as it does not provided any advantage against getVerticesMap()
-
 		/**
-		* @brief Get pairs of <id, value> of vertices
+		*  Get pairs of <id, value> of vertices
 		* @return map, where key = id and value = value of given vertex
 		*/
 		std::map<size_t, V> getVerticesMap() const
@@ -427,7 +466,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Returns map with vertices ids as keys and default constructed element T as value
+		 * Returns map with vertices ids as keys and default constructed element T as value
 		 * @return map, where key = id and value = default constructed template parameter
 		 */
 		template<typename T>
@@ -442,7 +481,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Returns position of edges in format {from, to} vertex id
+		 * Returns position of edges in format {from, to} vertex id
 		 * @param includeUndirEdgesTwice if set to true, each edge in undirected graph will be included twice
 		 * @return vector of <source vertex, end vertex> pairs
 		 */
@@ -467,7 +506,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Returns position of edges in format {from, to} vertex id and value
+		 * Returns position of edges in format {from, to} vertex id and value
 		 * @param includeUndirEdgesTwice if set to true, each edge in undirected graph will be included twice
 		 * @return vector of tuples in format { from vertex id, source vertex id, edge value }
 		 */
@@ -504,10 +543,10 @@ namespace Graph
 				throw std::invalid_argument("vertex id not found");
 			}
 			return vertices.find(source)->second.getOutgoingEdges();
-		}		
+		}
 
 		/**
-		 * @brief Get value of given vertex
+		 * Get value of given vertex
 		 * @param vertex id of vertex
 		 * @throws invalid_argument exception if id is invalid
 		 * @return value of this vertex
@@ -523,7 +562,7 @@ namespace Graph
 		}
 
 		/**
-		* @brief Set value of given vertex
+		* Set value of given vertex
 		* @param vertex id of vertex
 		* @return nothing
 		*/
@@ -537,7 +576,7 @@ namespace Graph
 		}
 
 		/**
-		* @brief Set value of given vertex
+		* Set value of given vertex
 		* @param vertex id of vertex
 		* @return nothing
 		*/
@@ -621,6 +660,11 @@ namespace Graph
 				ss << m.second.id + 1 << "." << m.second.value << " ";
 			}
 			return ss.str();
+		}
+
+		void listVerticesToStream(std::ostream& stream = std::cout) const
+		{
+			stream << listVertices() << std::endl;
 		}
 
 		size_t getActualId() const
@@ -751,7 +795,7 @@ namespace Graph
 			}
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
 		}
-		
+
 		/**
 		* Get value of edge
 		* @param from vertex from
@@ -799,7 +843,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Saves graph to file in custom format
+		 * Saves graph to file in custom format
 		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
 		 * @return true if save request was successful, false otherwise
 		 */
@@ -811,10 +855,10 @@ namespace Graph
 			{
 				outputFile << " " << e.second;
 			});
-		} 
-		
+		}
+
 		/**
-		 * @brief Saves graph to file in custom format
+		 * Saves graph to file in custom format
 		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
 		 * @return true if save request was successful, false otherwise
 		 */
@@ -826,10 +870,10 @@ namespace Graph
 			{
 				outputFile << " " << "\"" << e.second << "\"";
 			});
-		} 
+		}
 
 		/**
-		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
+		* Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
 		* @param filePath path to file
 		* @return true if loading was successful, false otherwise
 		*/
@@ -844,9 +888,9 @@ namespace Graph
 				vertices.rbegin()->second.outgoingEdges.insert({targetId, edgeValue});
 			});
 		}
-		
+
 		/**
-		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
+		* Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
 		* @param filePath path to file
 		* @return true if loading was successful, false otherwise
 		*/
@@ -869,7 +913,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Exports graph to dot format with ids as vertex names
+		 * Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
@@ -900,7 +944,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Exports graph to dot format with ids as vertex names
+		 * Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
 		 * @param colorEdgesBetween vector of edges pairs which will be coloured
 		 * @return true if export was sucessful, false otherwise
@@ -938,7 +982,7 @@ namespace Graph
 		}
 
 #ifdef GRAPH_DEBUG
-		std::string listEdges()
+		std::string listEdges() const
 		{
 			std::stringstream ss;
 			for (auto & m : vertices)
@@ -949,6 +993,11 @@ namespace Graph
 				}
 			}
 			return ss.str();
+		}
+
+		void listEdgesToStream(std::ostream& stream = std::cout) const
+		{
+			stream << listEdges();
 		}
 #endif
 	};
@@ -1001,7 +1050,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Saves graph to file in custom format
+		 * Saves graph to file in custom format
 		 * @param filePath file to which the graph will be saved (if file exists, will be overwritten)
 		 * @return true if save request was successful, false otherwise
 		 */
@@ -1011,7 +1060,7 @@ namespace Graph
 		}
 
 		/**
-		* @brief Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
+		* Clears current graph content and loads graph from file in custom format (vertices/edges names will be loaded till first whitespace)
 		* @param filePath path to file
 		* @return true if loading was successful, false otherwise
 		*/
@@ -1024,7 +1073,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Exports graph to dot format with ids as vertex names
+		 * Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
@@ -1050,7 +1099,7 @@ namespace Graph
 		}
 
 		/**
-		 * @brief Exports graph to dot format with ids as vertex names
+		 * Exports graph to dot format with ids as vertex names
 		 * @param filePath path to file
 		 * @param colorEdgesBetween vector of edges pairs which will be coloured
 		 * @return true if export was sucessful, false otherwise
@@ -1083,7 +1132,7 @@ namespace Graph
 		}
 
 #ifdef GRAPH_DEBUG
-		std::string listEdges()
+		std::string listEdges() const
 		{
 			std::stringstream ss;
 			for (auto & m : vertices)
@@ -1095,15 +1144,20 @@ namespace Graph
 			}
 			return ss.str();
 		}
+
+		void listEdgesToStream(std::ostream& stream = std::cout) const
+		{
+			stream << listEdges();
+		}
 #endif
 	};
-	
+
 	template<typename V, typename E>
 	bool operator==(const AbstractGraph<V,E>& lhs, const AbstractGraph<V,E>& rhs)
 	{
 		return lhs.directed == rhs.directed && lhs.vertices == rhs.vertices;
 	}
-	
+
 	template<typename V, typename E>
 	bool operator!=(const AbstractGraph<V,E>& lhs, const AbstractGraph<V,E>& rhs)
 	{
