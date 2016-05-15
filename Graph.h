@@ -226,6 +226,8 @@ namespace Graph
 		template<typename Func, typename FuncVert>
 		bool _loadFromFileBase(const std::string& filePath, bool isWeighted, Func f, FuncVert fv)
 		{
+			static_assert(std::is_default_constructible<V>::value, "Vertex type must be default constructible.");
+			
 			vertices.clear();
 			std::ifstream inputFile(filePath);
 			std::string line;
@@ -243,7 +245,7 @@ namespace Graph
 					{
 						ss.ignore(3);
 						size_t vertId;
-						V vertValue; // WARNING V must be default constructible in this case!
+						V vertValue;
 
 						if(!ss.good())
 						{
@@ -881,9 +883,11 @@ namespace Graph
 		typename std::enable_if_t<!std::is_same<TE, std::string>::value, bool>
 		loadFromFile(const std::string& filePath)
 		{
+			static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
+			
 			return this->_loadFromFile(filePath, true, [&,this](auto& ss, auto& targetId)
 			{
-				E edgeValue; // WARNING E must be default constructible in this case!
+				E edgeValue;
 				ss >> edgeValue;
 				vertices.rbegin()->second.outgoingEdges.insert({targetId, edgeValue});
 			});

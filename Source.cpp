@@ -110,7 +110,7 @@ int main()
 	Graph::Graph<Destroyer> destroyerGraph(false);
 	auto d4 = destroyerGraph.addVertex(Destroyer(4));
 	auto d2 = destroyerGraph.addVertex(Destroyer(2));
-
+	
 	auto destVals = destroyerGraph.getVerticesMap();
 
 	for(auto& a : destVals)

@@ -211,6 +211,8 @@ namespace Graph
 	std::pair<std::map<size_t, E>, std::map<size_t, size_t>>
 	bellmanFord(const Graph<V,E>& graph, size_t startVertex, E infinity = std::numeric_limits<E>::max())
 	{
+		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
+		
 		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
 		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
 		auto graphEdges = graph.getEdgesPositions(true);
@@ -353,6 +355,8 @@ namespace Graph
 	std::pair<std::map<size_t, E>, std::map<size_t, size_t>>
 	dijkstraAll(const Graph<V, E>& graph, size_t source, E infinity = std::numeric_limits<E>::max())
 	{
+		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
+		
 		auto vertices = graph.getVerticesMap();
 		if (vertices.find(source) == vertices.end())
 		{
@@ -415,6 +419,8 @@ namespace Graph
 	std::pair<E, std::vector<size_t>>
 	dijkstra(const Graph<V, E>& graph, size_t source, size_t target, E infinity = std::numeric_limits<E>::max())
 	{
+		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
+		
 		auto vertices = graph.getVerticesMap();
 		if (vertices.find(source) == vertices.end())
 		{
@@ -545,12 +551,13 @@ namespace Graph
 	 * @param graph graph (must have integral type of edges)
 	 * @param source source vertex
 	 * @param sink sink vertex
-	 * @return maximum flow, garph with edges values equal to their flow
+	 * @return maximum flow, graph with edges values equal to their flow
 	 */
 	template<typename V, typename E>
 	std::pair<E, Graph<V,E>> edmondsKarpMaxFlow(Graph<V, E> graph, size_t source, size_t sink)
 	{
 		static_assert(std::is_integral<E>::value, "Edmonds Karp is defined only for integral values of edges.");
+		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
 		
 		// Capacity graph
 		auto edges = graph.getEdgesPositions();
