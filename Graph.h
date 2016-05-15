@@ -800,7 +800,7 @@ namespace Graph
 			if(vertices.find(from)->second.outgoingEdges.find(to) == 
 				vertices.find(from)->second.outgoingEdges.end())
 			{
-				throw std::invalid_argument("edge does no exist");
+				throw std::invalid_argument("edge does not exist");
 			}
 			
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
@@ -828,7 +828,7 @@ namespace Graph
 			if(vertices.find(from)->second.outgoingEdges.find(to) == 
 				vertices.find(from)->second.outgoingEdges.end())
 			{
-				throw std::invalid_argument("edge does no exist");
+				throw std::invalid_argument("edge does not exist");
 			}
 			
 			return vertices.find(from)->second.outgoingEdges.find(to)->second;
