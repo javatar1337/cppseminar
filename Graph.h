@@ -130,7 +130,7 @@ namespace Graph
 		*/
 		size_t addVertex(const Vertex& vertex)
 		{
-			auto toReturn = vertices.insert(std::pair<size_t, Vertex> (total_id, vertex));
+			auto toReturn = vertices.emplace(std::pair<size_t, Vertex> (total_id, vertex));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -142,7 +142,7 @@ namespace Graph
 		*/
 		size_t addVertex(Vertex && vertex)
 		{
-			auto toReturn = vertices.insert(std::pair<size_t, Vertex >(total_id, std::move(vertex)));
+			auto toReturn = vertices.emplace(std::pair<size_t, Vertex >(total_id, std::move(vertex)));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -264,7 +264,7 @@ namespace Graph
 
 						fv(ss, vertValue);
 
-						vertices.insert({vertId, Vertex(vertId, std::move(vertValue))});
+						vertices.emplace(std::make_pair(vertId, Vertex(vertId, std::move(vertValue))));
 
 						if(vertId > total_id)
 						{
@@ -401,7 +401,7 @@ namespace Graph
 
 							f(outputFile, e.second, v.second.id, e.first);
 
-							exportedPairs.push_back({v.second.id, e.first});
+							exportedPairs.emplace_back(std::make_pair(v.second.id, e.first));
 							outputFile << ";" << std::endl;
 						}
 					}
@@ -462,7 +462,7 @@ namespace Graph
 			std::map<size_t, V> result;
 			for (auto& vert : vertices)
 			{
-				result.insert({vert.first, vert.second.getValue()});
+				result.emplace(std::make_pair(vert.first, vert.second.getValue()));
 			}
 			return result;
 		}
@@ -477,7 +477,7 @@ namespace Graph
 			std::map<size_t, T> result;
 			for (auto& vert: vertices)
 			{
-				result.insert({ vert.first, T() });
+				result.emplace(std::make_pair(vert.first, T()));
 			}
 			return result;
 		}
@@ -501,7 +501,7 @@ namespace Graph
 							continue;
 						}
 					}
-					result.push_back({ vert.first, edge.first });
+					result.emplace_back(std::make_pair(vert.first, edge.first));
 				}
 			}
 			return result;
@@ -526,7 +526,7 @@ namespace Graph
 							continue;
 						}
 					}
-					result.push_back(std::make_tuple(vert.first, edge.first, edge.second));
+					result.emplace_back(std::make_tuple(vert.first, edge.first, edge.second));
 				}
 			}
 			return result;
@@ -653,6 +653,15 @@ namespace Graph
 			return result;
 		}
 
+		bool operator==(const AbstractGraph& rhs) const
+		{
+			return this->directed == rhs.directed && this->vertices == rhs.vertices;
+		}
+
+		bool operator!=(const AbstractGraph& rhs) const
+		{
+			return !(*this == rhs);
+		}
 
 #ifdef GRAPH_DEBUG
 		std::string listVertices() const
@@ -748,10 +757,10 @@ namespace Graph
 				return;
 			}
 
-			vertices.find(from)->second.outgoingEdges.insert({to, value});
+			vertices.find(from)->second.outgoingEdges.emplace({to, value});
 			if(!directed)
 			{
-				vertices.find(to)->second.outgoingEdges.insert({from, value});
+				vertices.find(to)->second.outgoingEdges.emplace({from, value});
 			}
 		}
 
@@ -771,10 +780,10 @@ namespace Graph
 				return;
 			}
 
-			vertices.find(from)->second.outgoingEdges.insert({to, std::move(value)});
+			vertices.find(from)->second.outgoingEdges.emplace(std::make_pair(to, std::move(value)));
 			if (!directed)
 			{
-				vertices.find(to)->second.outgoingEdges.insert({from, std::move(value)});
+				vertices.find(to)->second.outgoingEdges.emplace(std::make_pair(from, std::move(value)));
 			}
 		}
 
@@ -903,7 +912,7 @@ namespace Graph
 			{
 				E edgeValue;
 				ss >> edgeValue;
-				vertices.rbegin()->second.outgoingEdges.insert({targetId, edgeValue});
+				vertices.rbegin()->second.outgoingEdges.emplace(std::make_pair(targetId, edgeValue));
 			});
 		}
 
@@ -925,7 +934,7 @@ namespace Graph
 				if(quotePos != std::string::npos && quotePosEnd != quotePos)
 				{
 					result = result.substr(quotePos + 1, quotePosEnd - quotePos - 1);
-					vertices.rbegin()->second.outgoingEdges.insert({targetId, result});
+					vertices.rbegin()->second.outgoingEdges.emplace({targetId, result});
 				}
 			});
 		}
@@ -1061,10 +1070,10 @@ namespace Graph
 				return;
 			}
 
-			vertices.find(from)->second.outgoingEdges.insert({to, u});
+			vertices.find(from)->second.outgoingEdges.emplace({to, u});
 			if (!directed)
 			{
-				vertices.find(to)->second.outgoingEdges.insert({from, u});
+				vertices.find(to)->second.outgoingEdges.emplace({from, u});
 			}
 		}
 
@@ -1087,7 +1096,7 @@ namespace Graph
 		{
 			return this->_loadFromFile(filePath, false, [&, this](auto&, auto& targetId)
 			{
-				vertices.rbegin()->second.outgoingEdges.insert({targetId, Unweight()});
+				vertices.rbegin()->second.outgoingEdges.emplace({targetId, Unweight()});
 			});
 		}
 
@@ -1099,7 +1108,7 @@ namespace Graph
 		 */
 		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>())
 		{
-			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
+			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto&, auto& startVertex, auto& endVertex)
 			{
 				auto startVrtxPos = std::find(colorEdgesBetween.begin(), colorEdgesBetween.end(), startVertex);
 				std::string color;
@@ -1125,7 +1134,7 @@ namespace Graph
 		 */
 		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges)
 		{
-			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
+			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto&, auto& startVertex, auto& endVertex)
 			{
 				bool shouldBeColored = false;
 
@@ -1171,18 +1180,4 @@ namespace Graph
 		}
 #endif
 	};
-
-	template<typename V, typename E>
-	bool operator==(const AbstractGraph<V,E>& lhs, const AbstractGraph<V,E>& rhs)
-	{
-		return lhs.directed == rhs.directed && lhs.vertices == rhs.vertices;
-	}
-
-	template<typename V, typename E>
-	bool operator!=(const AbstractGraph<V,E>& lhs, const AbstractGraph<V,E>& rhs)
-	{
-		return !(lhs == rhs);
-	}
 }
-
-#undef GRAPH_DEBUG

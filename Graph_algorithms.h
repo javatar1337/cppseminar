@@ -29,8 +29,8 @@ namespace Graph
 			{
 				for(auto& a : vertices)
 				{
-					mVertices.insert({a, a});
-					mSetSizes.insert({a, 1});
+					mVertices.emplace(std::make_pair(a, a));
+					mSetSizes.emplace(std::make_pair(a, 1));
 				}
 			}
 
@@ -46,8 +46,8 @@ namespace Graph
 
 				for(auto& a : vertices)
 				{
-					mVertices.insert({a, a});
-					mSetSizes.insert({a, 1});
+					mVertices.emplace(std::make_pair(a, a));
+					mSetSizes.emplace(std::make_pair(a, 1));
 				}
 			}
 
@@ -135,7 +135,7 @@ namespace Graph
 		}
 		for (auto & ver : graph.getVerticesMap())
 		{
-			discovered.insert({ ver.first, false });
+			discovered.emplace(std::make_pair(ver.first, false));
 		}
 		std::stack<size_t> vertex_stack;
 		vertex_stack.push(starting_vertex);
@@ -176,8 +176,8 @@ namespace Graph
 		}
 		for (auto & ver : graph.getVerticesMap())
 		{
-			distance.insert({ ver.first, SIZE_MAX});
-			parent.insert({ver.first, ver.first});
+			distance.emplace(std::make_pair(ver.first, std::numeric_limits<size_t>::max()));
+			parent.emplace(std::make_pair(ver.first, ver.first));
 		}
 		std::queue<size_t> vertex_queue;
 		vertex_queue.push(starting_vertex);
@@ -189,7 +189,7 @@ namespace Graph
 			f(graph.getVertexValue(v));
 			for (auto & edd : graph.getNeighbours(v))
 			{
-				if (distance.find(edd)->second == SIZE_MAX)
+				if (distance.find(edd)->second == std::numeric_limits<size_t>::max())
 				{
 					distance.find(edd)->second = distance.find(v)->second + 1;
 					parent.find(edd)->second = v;
@@ -333,7 +333,7 @@ namespace Graph
 		{
 			if(uf.find(std::get<0>(edge)) != uf.find(std::get<1>(edge)))
 			{
-				result.push_back({std::get<0>(edge), std::get<1>(edge)});
+				result.emplace_back(std::make_pair(std::get<0>(edge), std::get<1>(edge)));
 				uf.unionSets(std::get<0>(edge), std::get<1>(edge));
 			}
 		}
@@ -387,7 +387,7 @@ namespace Graph
 			std::map<size_t, E> vqm;
 			for (auto & y : vertex_queue)
 			{
-				vqm.insert({y, distance.at(y)});
+				vqm.emplace(std::make_pair(y, distance.at(y)));
 			}
 			size_t u = (*std::min_element(vqm.begin(), vqm.end(), helper::CompareSecond<E>())).first;
 			vertex_queue.erase(u);
@@ -456,7 +456,7 @@ namespace Graph
 			std::map<size_t, E> vqm;
 			for (auto & y : vertex_queue)
 			{
-				vqm.insert({ y, distance.at(y) });
+				vqm.emplace(std::make_pair(y, distance.at(y)));
 			}
 			u = (*std::min_element(vqm.begin(), vqm.end(), helper::CompareSecond<E>())).first;
 			for (auto & v : vertex_queue)
@@ -548,7 +548,7 @@ namespace Graph
 
 	/**
 	 * Edmonds-Karp algorithm
-	 * @param graph graph (must have integral type of edges)
+	 * @param graph graph
 	 * @param source source vertex
 	 * @param sink sink vertex
 	 * @return maximum flow, graph with edges values equal to their flow
@@ -556,7 +556,6 @@ namespace Graph
 	template<typename V, typename E>
 	std::pair<E, Graph<V,E>> edmondsKarpMaxFlow(Graph<V, E> graph, size_t source, size_t sink)
 	{
-		static_assert(std::is_integral<E>::value, "Edmonds Karp is defined only for integral values of edges.");
 		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
 		
 		// Capacity graph
@@ -598,7 +597,7 @@ namespace Graph
 					if(pred.find(e.first) == pred.end() && e.first != source &&
 					        graph.getEdgeValue(curr, e.first) > graphFlow.getEdgeValue(curr, e.first))
 					{
-						pred.insert({ e.first, curr });
+						pred.emplace(std::make_pair(e.first, curr));
 						q.push(e.first);
 					}
 				}
