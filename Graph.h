@@ -44,9 +44,6 @@ namespace Graph
 	class AbstractGraph
 	{
 	protected:
-		template<typename TV, typename TE>
-		friend bool operator==(const AbstractGraph<TV,TE>&, const AbstractGraph<TV,TE>&);
-
 		/**
 		 * Vertex class
 		 */

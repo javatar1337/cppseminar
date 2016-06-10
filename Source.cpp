@@ -183,11 +183,11 @@ void bfsDfsOperations()
 	DFS(graph2, vv1
 		, [](auto vertex)
 	{
-		return;
+		std::cout << "Preorder Vertex: " << vertex << std::endl;
 	}
 		, [](auto vertex)
 	{
-		std::cout << "Vertex: " << vertex << std::endl;
+		std::cout << "PostorderVertex: " << vertex << std::endl;
 	}	
 	);
 }
