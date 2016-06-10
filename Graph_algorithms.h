@@ -116,16 +116,37 @@ namespace Graph
 				       );
 			}
 		};
+
+		/**
+		* Depth-first search algorithm
+		* @param graph graph
+		* @param starting_vertex vertex to start search from, must be part of graph
+		* @param preorder unary function
+		* @param postorder unary function
+		*/
+		template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
+		void _DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder, std::map<size_t, bool> & discovered)
+		{
+			discovered.find(starting_vertex)->second = true;
+			preorder(graph.getVertexValue(starting_vertex));
+			for (auto & v : graph.getNeighbours(starting_vertex))
+			{
+				if(!discovered.find(v)->second) _DFS(graph, v, preorder, postorder, discovered);
+			}
+			postorder(graph.getVertexValue(starting_vertex));
+			return;
+		}
 	}
 
 	/**
 	* Depth-first search algorithm
 	* @param graph graph
 	* @param starting_vertex vertex to start search from, must be part of graph
-	* @param f unary function
+	* @param preorder unary function
+	* @param postorder unary function
 	*/
-	template<typename V, typename E, typename UnaryFunction>
-	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
+	template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
+	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
 	{
 		std::map<size_t, bool> discovered;
 		auto vertmap = graph.getVerticesMap();
@@ -137,22 +158,8 @@ namespace Graph
 		{
 			discovered.emplace(std::make_pair(ver.first, false));
 		}
-		std::stack<size_t> vertex_stack;
-		vertex_stack.push(starting_vertex);
-		while (!vertex_stack.empty())
-		{
-			size_t v = vertex_stack.top();
-			vertex_stack.pop();
-			if (!discovered.find(v)->second)
-			{
-				discovered.find(v)->second = true;
-				f(graph.getVertexValue(v));
-				for (auto & edd : graph.getNeighbours(v))
-				{
-					vertex_stack.push(edd);
-				}
-			}
-		}
+		helper::_DFS(graph, starting_vertex, preorder, postorder, discovered);
+
 		return;
 	}
 

@@ -160,8 +160,36 @@ void bfsDfsOperations()
 	DFS(graph, pardubice, [](auto vertex)
 	{
 		std::cout << "Vertex: " << vertex << std::endl;
+	}, [](auto vertex)
+	{
+		return;
 	});
-	
+	std::cout << "hh" << std::endl;
+	Graph::Graph<std::string, size_t> graph2(false);
+	auto vv1 = graph2.addVertex("0");
+	auto vv2 = graph2.addVertex("1");
+	auto vv3 = graph2.addVertex("2");
+	auto vv4 = graph2.addVertex("3");
+	auto vv5 = graph2.addVertex("4");
+	auto vv6 = graph2.addVertex("5");
+	auto vv7 = graph2.addVertex("6");
+	graph2.addEdge(vv1, vv2, 1);
+	graph2.addEdge(vv1, vv3, 1);
+	graph2.addEdge(vv1, vv4, 1);
+	graph2.addEdge(vv2, vv7, 1);
+	graph2.addEdge(vv4, vv5, 1);
+	graph2.addEdge(vv5, vv6, 1);
+	graph2.addEdge(vv7, vv6, 1);
+	DFS(graph2, vv1
+		, [](auto vertex)
+	{
+		return;
+	}
+		, [](auto vertex)
+	{
+		std::cout << "Vertex: " << vertex << std::endl;
+	}	
+	);
 }
 
 void shortestPaths()
@@ -189,9 +217,21 @@ void shortestPaths()
 	graph.addEdge(most, praha, 100);
 	graph.addEdge(most, pardubice, 205);
 	
+	Graph::Graph<std::string, size_t> graph2(false);
+	auto vvv1 = graph2.addVertex("1");
+	auto vvv2 = graph2.addVertex("2");
+	auto vvv3 = graph2.addVertex("3");
+	auto vvv4 = graph2.addVertex("4");
+
+	graph2.addEdge(vvv1, vvv2, 3);
+	graph2.addEdge(vvv1, vvv3, 1);
+	graph2.addEdge(vvv2, vvv4, 1);
+	graph2.addEdge(vvv3, vvv4, 2);
+
 	std::cout << "Default graph exported to 'shortestPathDot.txt'? " << graph.exportToDot("shortestPathDot.txt") << std::endl;
 	
 	std::cout << "Dijkstra: Most to Plzen? " << dijkstra(graph, most, plzen).first << std::endl;
+	std::cout << "Dijkstra: 1 to 4? " << dijkstra(graph2, vvv1, vvv4).first << std::endl;
 	std::cout << "Bellman-Ford: Most to Plzen? " << bellmanFordShortestPath(graph, most, plzen) << std::endl;
 	
 	std::cout << "Colored graph exported to 'shortestPathColoredDot.txt'? " << 

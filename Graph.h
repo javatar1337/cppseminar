@@ -105,7 +105,7 @@ namespace Graph
 
 		using vertexMap = std::map<size_t, Vertex >;
 
-		bool directed;
+		const bool directed;
 		vertexMap vertices;
 		size_t total_id = 0;
 
@@ -421,7 +421,7 @@ namespace Graph
 		size_t addVertex(const V & value)
 		{
 			Vertex v(total_id, value);
-			return addVertex(v);
+			return addVertex(std::move(v));
 		}
 
 		/**
@@ -432,7 +432,7 @@ namespace Graph
 		size_t addVertex(V && value)
 		{
 			Vertex v(total_id, std::move(value));
-			return addVertex(v);
+			return addVertex(std::move(v));
 		}
 
 		/**
@@ -626,9 +626,10 @@ namespace Graph
 		bool adjacent(size_t from, size_t to) const
 		{
 			bool result = false;
-			if (vertices.find(from) != vertices.end())
+			auto findfrom = vertices.find(from);
+			if (findfrom != vertices.end())
 			{
-				if (vertices.find(from)->second.outgoingEdges.find(to) != vertices.find(from)->second.outgoingEdges.end())
+				if (findfrom->second.outgoingEdges.find(to) != findfrom->second.outgoingEdges.end())
 					result = true;
 			}
 			return result;
