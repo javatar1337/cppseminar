@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <utility>
 #include <tuple>
+#include <memory>
 
 namespace Graph
 {
@@ -22,14 +23,34 @@ namespace Graph
 		class UnionFind
 		{
 		private:
-			std::map<size_t, size_t> mVertices;
+			struct Node
+			{
+				std::map<size_t, std::unique_ptr<Node>>::iterator parent;
+				
+				Node(const std::map<size_t, std::unique_ptr<Node>>::iterator& iter)
+					:parent(iter) 
+				{ }
+			};
+		
+			std::map<size_t, std::unique_ptr<Node>> mVertices;
 			std::map<size_t, size_t> mSetSizes;
+			
+			std::map<size_t, std::unique_ptr<Node>>::iterator 
+			find(size_t idx, const std::unique_ptr<Node>& node)
+			{
+				if(node->parent->first != idx)
+				{
+					node->parent = find(node->parent->first, node->parent->second);
+				}
+				return node->parent;
+			}
 		public:
 			UnionFind(const std::vector<size_t>& vertices)
 			{
 				for(auto& a : vertices)
 				{
-					mVertices.emplace(std::make_pair(a, a));
+					auto it = mVertices.emplace(std::make_pair(a, nullptr));
+					it.first->second = std::make_unique<Node>(it.first);
 					mSetSizes.emplace(std::make_pair(a, 1));
 				}
 			}
@@ -37,40 +58,18 @@ namespace Graph
 			template<typename T>
 			UnionFind(const std::map<size_t, T>& verticesMap)
 			{
-				std::vector<size_t> vertices;
-
-				for(auto& v : verticesMap)
+				for(auto& a : verticesMap)
 				{
-					vertices.push_back(v.first);
-				}
-
-				for(auto& a : vertices)
-				{
-					mVertices.emplace(std::make_pair(a, a));
-					mSetSizes.emplace(std::make_pair(a, 1));
+					auto it = mVertices.emplace(std::make_pair(a.first, nullptr));
+					it.first->second = std::make_unique<Node>(it.first);
+					mSetSizes.emplace(std::make_pair(a.first, 1));
 				}
 			}
 
 			size_t find(size_t item)
 			{
-				size_t newSize = 1;
 				auto it = mVertices.find(item);
-
-				if(it == mVertices.end())
-				{
-					throw std::invalid_argument("Requested item does not exist.");
-				}
-
-				size_t parent = it->second;
-
-				while(parent != mVertices.find(parent)->second)
-				{
-					parent = mVertices.find(parent)->second;
-					++newSize;
-				}
-
-				mSetSizes.at(item) = newSize;
-				return parent;
+				return find(it->first, it->second)->first;
 			}
 
 			void unionSets(size_t first, size_t second)
@@ -78,14 +77,16 @@ namespace Graph
 				size_t firstRoot = find(first);
 				size_t secondRoot = find(second);
 
+				if(firstRoot == secondRoot) { return; }
+
 				if(mSetSizes.at(first) < mSetSizes.at(second))
 				{
-					mVertices.find(firstRoot)->second = secondRoot;
+					mVertices.find(firstRoot)->second->parent = mVertices.find(secondRoot)->second->parent;
 					mSetSizes.at(secondRoot) = mSetSizes.at(firstRoot);
 				}
 				else
 				{
-					mVertices.find(secondRoot)->second = firstRoot;
+					mVertices.find(secondRoot)->second->parent = mVertices.find(firstRoot)->second->parent;
 					mSetSizes.at(firstRoot) = mSetSizes.at(secondRoot);
 				}
 			}
@@ -96,6 +97,7 @@ namespace Graph
 			}
 		};
 
+		
 		template<typename E>
 		struct CompareSecond
 		{
