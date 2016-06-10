@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <set>
 
 namespace Graph
 {
@@ -487,13 +488,19 @@ namespace Graph
 		std::vector<std::pair<size_t, size_t>> getEdgesPositions(bool includeUndirEdgesTwice = false) const
 		{
 			std::vector<std::pair<size_t, size_t>> result;
+			std::set<size_t> verIn;
 			for (auto& vert : vertices)
 			{
+				verIn.insert(vert.first);
 				for(auto& edge : vert.second.outgoingEdges)
 				{
 					if(!includeUndirEdgesTwice && !directed)
 					{
-						if(std::find(result.begin(), result.end(), std::make_pair(edge.first, vert.first)) != result.end())
+						/*if(std::find(result.begin(), result.end(), std::make_pair(edge.first, vert.first)) != result.end())
+						{
+							continue;
+						}*/
+						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
 						{
 							continue;
 						}
@@ -512,13 +519,18 @@ namespace Graph
 		std::vector<std::tuple<size_t, size_t, E>> getEdgesPositionsAndValues(bool includeUndirEdgesTwice = false) const
 		{
 			std::vector<std::tuple<size_t, size_t, E>> result;
+			std::set<size_t> verIn;
 			for (auto& vert : vertices)
 			{
 				for(auto& edge : vert.second.outgoingEdges)
 				{
 					if(!includeUndirEdgesTwice && !directed)
 					{
-						if(std::find(result.begin(), result.end(), std::make_tuple(edge.first, vert.first, edge.second))!= result.end())
+						/*if(std::find(result.begin(), result.end(), std::make_tuple(edge.first, vert.first, edge.second))!= result.end())
+						{
+							continue;
+						}*/
+						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
 						{
 							continue;
 						}

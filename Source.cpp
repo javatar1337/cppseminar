@@ -101,6 +101,11 @@ void basicGraphFunctions()
 	digraph.updateEdgeValue(praha, brno, 206);
 	std::cout << "Value between Praha and Brno updated to 206." << std::endl;
 	std::cout << "Value between Praha and Brno: " << digraph.getEdgeValue(praha, brno) << std::endl;
+
+	auto aaaauto = graph;
+	for (auto &i : aaaauto.getEdgesPositions(true)) {
+		std::cout << "{" << aaaauto.getVertexValue( i.first ) << ", " << aaaauto.getVertexValue( i.second )<< "} " << std::endl;
+	}
 }
 
 void basicFileOperations()
@@ -229,8 +234,12 @@ void shortestPaths()
 	graph2.addEdge(vvv3, vvv4, 2);
 
 	std::cout << "Default graph exported to 'shortestPathDot.txt'? " << graph.exportToDot("shortestPathDot.txt") << std::endl;
-	
-	std::cout << "Dijkstra: Most to Plzen? " << dijkstra(graph, most, plzen).first << std::endl;
+	auto dijkstrares = dijkstra(graph, most, plzen);
+	std::cout << "Dijkstra: Most to Plzen? " << dijkstrares.first << std::endl;
+	for (auto &i : dijkstrares.second) {
+		std::cout << graph.getVertexValue(i) << " ";
+	}
+	std::cout << std::endl;
 	std::cout << "Dijkstra: 1 to 4? " << dijkstra(graph2, vvv1, vvv4).first << std::endl;
 	std::cout << "Bellman-Ford: Most to Plzen? " << bellmanFordShortestPath(graph, most, plzen) << std::endl;
 	
