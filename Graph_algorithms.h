@@ -103,7 +103,7 @@ namespace Graph
 		{
 			bool operator()(const std::pair<std::size_t, E>& left, const std::pair<std::size_t, E>& right) const
 			{
-				return left.second < right.second;
+				return left.second > right.second;
 			}
 		};
 
@@ -112,22 +112,43 @@ namespace Graph
 		{
 			bool operator()(const std::tuple<size_t, size_t, E>& left, const std::tuple<size_t, size_t, E>& right) const
 			{
-				return (std::get<2>(left) < std::get<2>(right)) &&
+				return (std::get<2>(left) > std::get<2>(right)) &&
 				       (
 				           ((std::get<0>(left))!=std::get<1>(left)) && ((std::get<0>(right)) != std::get<1>(right))
 				       );
 			}
 		};
+
+		/**
+		* Depth-first search algorithm
+		* @param graph graph
+		* @param starting_vertex vertex to start search from, must be part of graph
+		* @param preorder unary function
+		* @param postorder unary function
+		*/
+		template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
+		void _DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder, std::map<size_t, bool> & discovered)
+		{
+			discovered.find(starting_vertex)->second = true;
+			preorder(graph.getVertexValue(starting_vertex));
+			for (auto & v : graph.getNeighbours(starting_vertex))
+			{
+				if(!discovered.find(v)->second) _DFS(graph, v, preorder, postorder, discovered);
+			}
+			postorder(graph.getVertexValue(starting_vertex));
+			return;
+		}
 	}
 
 	/**
 	* Depth-first search algorithm
 	* @param graph graph
 	* @param starting_vertex vertex to start search from, must be part of graph
-	* @param f unary function
+	* @param preorder unary function
+	* @param postorder unary function
 	*/
-	template<typename V, typename E, typename UnaryFunction>
-	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
+	template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
+	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
 	{
 		std::map<size_t, bool> discovered;
 		auto vertmap = graph.getVerticesMap();
@@ -139,22 +160,8 @@ namespace Graph
 		{
 			discovered.emplace(std::make_pair(ver.first, false));
 		}
-		std::stack<size_t> vertex_stack;
-		vertex_stack.push(starting_vertex);
-		while (!vertex_stack.empty())
-		{
-			size_t v = vertex_stack.top();
-			vertex_stack.pop();
-			if (!discovered.find(v)->second)
-			{
-				discovered.find(v)->second = true;
-				f(graph.getVertexValue(v));
-				for (auto & edd : graph.getNeighbours(v))
-				{
-					vertex_stack.push(edd);
-				}
-			}
-		}
+		helper::_DFS(graph, starting_vertex, preorder, postorder, discovered);
+
 		return;
 	}
 
@@ -386,12 +393,12 @@ namespace Graph
 
 		while (!vertex_queue.empty())
 		{
-			std::map<size_t, E> vqm;
+			std::priority_queue<std::pair<size_t, E>, std::vector<std::pair<size_t, E>>, helper::CompareSecond<E>> vqm;
 			for (auto & y : vertex_queue)
 			{
 				vqm.emplace(std::make_pair(y, distance.at(y)));
 			}
-			size_t u = (*std::min_element(vqm.begin(), vqm.end(), helper::CompareSecond<E>())).first;
+			size_t u = vqm.top().first;
 			vertex_queue.erase(u);
 			for (auto & w : graph.getNeighbours(u))
 			{
@@ -421,75 +428,17 @@ namespace Graph
 	std::pair<E, std::vector<size_t>>
 	dijkstra(const Graph<V, E>& graph, size_t source, size_t target, E infinity = std::numeric_limits<E>::max())
 	{
-		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
-		
-		auto vertices = graph.getVerticesMap();
-		if (vertices.find(source) == vertices.end())
-		{
-			throw std::invalid_argument("source vertex id not found");
-		}
-		if (vertices.find(target) == vertices.end())
-		{
-			throw std::invalid_argument("target vertex id not found");
-		}
-		std::set<size_t> vertex_queue;
-		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
-		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
-		auto graphEdges = graph.getEdgesPositions();
-
-		for (auto & d : distance)
-		{
-			d.second = infinity;
-		}
-
-		for (auto & p : predecessors)
-		{
-			p.second = p.first;
-		}
-		for (auto & v : vertices)
-		{
-			vertex_queue.insert(v.first);
-		}
-		distance.at(source) = E();
-
-		size_t u;
-		while (!vertex_queue.empty())
-		{
-			std::map<size_t, E> vqm;
-			for (auto & y : vertex_queue)
-			{
-				vqm.emplace(std::make_pair(y, distance.at(y)));
-			}
-			u = (*std::min_element(vqm.begin(), vqm.end(), helper::CompareSecond<E>())).first;
-			for (auto & v : vertex_queue)
-			{
-				if (distance.at(v) < distance.at(u)) u = v;
-			}
-			vertex_queue.erase(u);
-			if (u == target) break;
-			for (auto & w : graph.getNeighbours(u))
-			{
-				if (vertex_queue.find(w) != vertex_queue.end())
-				{
-					E alt = (distance.at(u) != infinity) ? (distance.at(u) + graph.getEdgeValue(u, w)) : infinity;
-					if (alt < distance.at(w))
-					{
-						distance.at(w) = alt;
-						predecessors.at(w) = u;
-					}
-				}
-			}
-		}
+		auto dAll = dijkstraAll(graph, source, infinity);
 		std::vector<size_t> result;
-		u = target;
-		while (predecessors.at(u) != u)
+		size_t u = target;
+		while (dAll.second.at(u) != u)
 		{
 			result.push_back(u);
-			u = predecessors.at(u);
+			u = dAll.second.at(u);
 		}
 		result.push_back(u);
 		std::reverse(result.begin(), result.end());
-		return { distance.at(target), result };
+		return { dAll.first.at(target), result };
 	}
 
 	/**
@@ -511,18 +460,20 @@ namespace Graph
 		std::set<size_t> vertices;
 		vertices.insert(source);
 		size_t v = source;
-		std::set<std::tuple<size_t, size_t, E>> edges;
+		//std::set<std::tuple<size_t, size_t, E>> edges;
+		std::priority_queue<std::tuple<size_t, size_t, E>, std::vector<std::tuple<size_t, size_t, E>>, helper::CompareThird<E>> edges;
 		while (vertices.size() < graph.getVerticesCount())
 		{
 			auto vedges = graph.getEdgesFrom(v);
 			for (auto & w : vedges)
 			{
-				if (vertices.find(w.first) == vertices.end()) edges.insert(std::make_tuple(v, w.first, w.second));
+				if (vertices.find(w.first) == vertices.end()) edges.emplace(std::make_tuple(v, w.first, w.second));
 			}
-			auto edge = (*std::min_element(edges.begin(), edges.end(), helper::CompareThird<E>()));
+			//auto edge = (*std::min_element(edges.begin(), edges.end(), helper::CompareThird<E>()));
+			auto edge = edges.top();
 			if (result.find({ std::get<1>(edge), std::get<0>(edge) }) == result.end()) result.insert({ std::get<0>(edge), std::get<1>(edge) });
 			vertices.insert(std::get<1>(edge));
-			edges.erase(edge);
+			edges.pop();
 			v = std::get<1>(edge);
 		}
 
