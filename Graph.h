@@ -1083,8 +1083,4 @@ namespace Graph
 		}
 #endif
 	};
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 8f9f9d2729459e018bda47ad1f2a12d5a738d540
