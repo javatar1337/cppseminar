@@ -73,14 +73,12 @@ namespace Graph
 	protected:
 		/**
 		 * Vertex class
+		 * 
+		 * Just simple "value-holder" which is visible only to AbstractGraph and derived classes
 		 */
 		class Vertex
 		{
-			friend class AbstractGraph<V,E>;
-
-			template<typename TV, typename TE>
-			friend class Graph;
-
+		public:
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
@@ -88,32 +86,7 @@ namespace Graph
 			Vertex(size_t id, V value)
 				:id(id), value(value)
 			{}
-
-			void setValue(const V & val)
-			{
-				value = val;
-			}
-
-			void setValue(V && val)
-			{
-				value = std::move(val);
-			}
-		public:
-			size_t getId() const
-			{
-				return id;
-			}
-
-			const V& getValue() const
-			{
-				return value;
-			}
-
-			const std::map<size_t, E> & getOutgoingEdges() const
-			{
-				return outgoingEdges;
-			}
-
+			
 			bool operator==(const Vertex& rhs) const
 			{
 				return value == rhs.value &&
@@ -141,11 +114,20 @@ namespace Graph
 			:directed(directed)
 		{}
 
-		/**
-		* Destructor
-		*/
-		virtual ~AbstractGraph()
-		{}
+
+		AbstractGraph& operator=(AbstractGraph rhs)
+		{
+			if(directed != rhs.directed)
+			{
+				throw std::invalid_argument("Graphs' orientation must be equal.");
+			}
+			
+			using std::swap;
+			swap(vertices, rhs.vertices);
+			swap(total_id, rhs.total_id);
+			
+			return *this;
+		}
 
 		/**
 		* Add vertex
@@ -434,6 +416,12 @@ namespace Graph
 		}
 	public:
 		/**
+		* Destructor
+		*/
+		virtual ~AbstractGraph()
+		{}
+		
+		/**
 		 * Add vertex by value reference
 		 * @param value value to be inserted
 		 * @return iterator to inserted vertex
@@ -482,7 +470,7 @@ namespace Graph
 			std::map<size_t, V> result;
 			for (auto& vert : vertices)
 			{
-				result.emplace(std::make_pair(vert.first, vert.second.getValue()));
+				result.emplace(std::make_pair(vert.first, vert.second.value));
 			}
 			return result;
 		}
@@ -575,7 +563,7 @@ namespace Graph
 			{
 				throw std::invalid_argument("vertex id not found");
 			}
-			return vertices.find(source)->second.getOutgoingEdges();
+			return vertices.find(source)->second.outgoingEdges;
 		}
 
 		/**
@@ -591,7 +579,7 @@ namespace Graph
 			{
 				throw std::invalid_argument("vertex id not found");
 			}
-			return vertices.find(vertex)->second.getValue();
+			return vertices.find(vertex)->second.value;
 		}
 
 		/**
