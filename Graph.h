@@ -44,6 +44,32 @@ namespace Graph
 	template<typename V, typename E>
 	class AbstractGraph
 	{
+		/**
+		* Template add vertex
+		* @param vertex value of inserted vertex
+		* @return id
+		*/
+		template <typename X> size_t _addVertex(X && vertex)
+		{
+			auto toReturn = vertices.emplace(std::pair<size_t, Vertex >(total_id, std::forward<X>(vertex)));
+			total_id++;
+			return toReturn.first->first;
+		}
+
+		/**
+		* Template set vertex value
+		* @param vertex id
+		* @param value new value
+		* @return nothing
+		*/
+		template <typename X> void _setVertexValue(size_t vertex, X && value)
+		{
+			auto is_in = vertices.find(vertex);
+			if (is_in != vertices.end())
+			{
+				is_in->second.setValue(std::forward<X>(value));
+			}
+		}
 	protected:
 		/**
 		 * Vertex class
@@ -128,21 +154,17 @@ namespace Graph
 		*/
 		size_t addVertex(const Vertex& vertex)
 		{
-			auto toReturn = vertices.emplace(std::pair<size_t, Vertex> (total_id, vertex));
-			total_id++;
-			return toReturn.first->first;
+			return _addVertex(vertex);
 		}
 
 		/**
 		* Add and move vertex
 		* @param value value to be inserted
-		* @return iterator to inserted vertex
+		* @return id to inserted vertex
 		*/
 		size_t addVertex(Vertex && vertex)
 		{
-			auto toReturn = vertices.emplace(std::pair<size_t, Vertex >(total_id, std::move(vertex)));
-			total_id++;
-			return toReturn.first->first;
+			return _addVertex(std::move(vertex));
 		}
 
 		/**
@@ -579,11 +601,7 @@ namespace Graph
 		*/
 		void setVertexValue(size_t vertex, const V & value)
 		{
-			auto is_in = vertices.find(vertex);
-			if (is_in != vertices.end())
-			{
-				is_in->second.setValue(value);
-			}
+			_setVertexValue(vertex, value);
 		}
 
 		/**
@@ -593,11 +611,7 @@ namespace Graph
 		*/
 		void setVertexValue(size_t vertex, V && value)
 		{
-			auto is_in = vertices.find(vertex);
-			if (is_in != vertices.end())
-			{
-				is_in->second.setValue(std::move(value));
-			}
+			_setVertexValue(vertex, std::move(value));
 		}
 
 		/**
@@ -710,9 +724,6 @@ namespace Graph
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
 
-		template<typename TV, typename TE>
-		friend class Graph;
-
 		/**
 		* Template update value of edge
 		* @param from vertex from
@@ -735,6 +746,29 @@ namespace Graph
 				}
 			}
 			return;
+		}
+
+		/**
+		* Template add edge
+		* @param from vertex from edge is leaving, must be in graph
+		* @param to vertex to edge is coming, must be in graph
+		* @param value value of edge
+		* @return nothing
+		*/
+		template<typename X> void _addEdge(size_t from, size_t to, X && value)
+		{
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end() || is_in_to == vertices.end())
+			{
+				return;
+			}
+
+			vertices.find(from)->second.outgoingEdges.emplace(std::make_pair( to, std::forward<X>(value) ));
+			if (!directed)
+			{
+				vertices.find(to)->second.outgoingEdges.emplace(std::make_pair( from, std::forward<X>(value) ));
+			}
 		}
 	public:
 		/**
@@ -760,18 +794,7 @@ namespace Graph
 		*/
 		void addEdge(size_t from, size_t to, const E & value)
 		{
-			auto is_in_from = vertices.find(from);
-			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end() || is_in_to == vertices.end())
-			{
-				return;
-			}
-
-			vertices.find(from)->second.outgoingEdges.emplace({to, value});
-			if(!directed)
-			{
-				vertices.find(to)->second.outgoingEdges.emplace({from, value});
-			}
+			_addEdge(from, to, value);
 		}
 
 		/**
@@ -783,18 +806,7 @@ namespace Graph
 		*/
 		void addEdge(size_t from, size_t to, E && value)
 		{
-			auto is_in_from = vertices.find(from);
-			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end() || is_in_to == vertices.end())
-			{
-				return;
-			}
-
-			vertices.find(from)->second.outgoingEdges.emplace(std::make_pair(to, std::move(value)));
-			if (!directed)
-			{
-				vertices.find(to)->second.outgoingEdges.emplace(std::make_pair(from, std::move(value)));
-			}
+			_addEdge(from, to, std::move(value));
 		}
 
 		/**
@@ -834,23 +846,9 @@ namespace Graph
 		*/
 		E& getEdgeValue(size_t from, size_t to)
 		{
-			auto is_in_from = vertices.find(from);
-			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end())
-			{
-				throw std::invalid_argument("\"from\" vertex id not found");
-			}
-			if (is_in_to == vertices.end())
-			{
-				throw std::invalid_argument("\"to\" vertex id not found");
-			}
-			if(vertices.find(from)->second.outgoingEdges.find(to) == 
-				vertices.find(from)->second.outgoingEdges.end())
-			{
-				throw std::invalid_argument("edge does not exist");
-			}
-			
-			return vertices.find(from)->second.outgoingEdges.find(to)->second;
+			const Graph<V,E>& constMe = *this;
+			return const_cast<E&>(constMe.getEdgeValue(from, to));
+            //http://stackoverflow.com/questions/123758/how-do-i-remove-code-duplication-between-similar-const-and-non-const-member-func
 		}
 
 		/**
