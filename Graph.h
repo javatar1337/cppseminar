@@ -44,45 +44,18 @@ namespace Graph
 	template<typename V, typename E>
 	class AbstractGraph
 	{
-		/**
-		* Template add vertex
-		* @param vertex value of inserted vertex
-		* @return id
-		*/
-		template <typename X> size_t _addVertex(X && vertex)
-		{
-			auto toReturn = vertices.emplace(std::pair<size_t, Vertex >(total_id, std::forward<X>(vertex)));
-			total_id++;
-			return toReturn.first->first;
-		}
-
-		/**
-		* Template set vertex value
-		* @param vertex id
-		* @param value new value
-		* @return nothing
-		*/
-		template <typename X> void _setVertexValue(size_t vertex, X && value)
-		{
-			auto is_in = vertices.find(vertex);
-			if (is_in != vertices.end())
-			{
-				is_in->second.setValue(std::forward<X>(value));
-			}
-		}
 	protected:
 		/**
-		 * Vertex class
+		 * Vertex struct
 		 * 
 		 * Just simple "value-holder" which is visible only to AbstractGraph and derived classes
 		 */
-		class Vertex
+		struct Vertex
 		{
-		public:
 			size_t id;
 			V value;
 			std::map<size_t, E> outgoingEdges;
-
+	
 			Vertex(size_t id, V value)
 				:id(id), value(value)
 			{}
@@ -90,10 +63,10 @@ namespace Graph
 			bool operator==(const Vertex& rhs) const
 			{
 				return value == rhs.value &&
-				       id == rhs.id &&
-				       outgoingEdges == rhs.outgoingEdges;
+					id == rhs.id &&
+					outgoingEdges == rhs.outgoingEdges;
 			}
-
+	
 			bool operator!=(const Vertex& rhs) const
 			{
 				return !(*this == rhs);
@@ -127,26 +100,6 @@ namespace Graph
 			swap(total_id, rhs.total_id);
 			
 			return *this;
-		}
-
-		/**
-		* Add vertex
-		* @param value value to be inserted
-		* @return id of inserted vertex
-		*/
-		size_t addVertex(const Vertex& vertex)
-		{
-			return _addVertex(vertex);
-		}
-
-		/**
-		* Add and move vertex
-		* @param value value to be inserted
-		* @return id to inserted vertex
-		*/
-		size_t addVertex(Vertex && vertex)
-		{
-			return _addVertex(std::move(vertex));
 		}
 
 		/**
@@ -422,25 +375,15 @@ namespace Graph
 		{}
 		
 		/**
-		 * Add vertex by value reference
-		 * @param value value to be inserted
+		 * Add vertex
+		 * @param value value to be inserted (if destruction of value is not problem, argument should be moved into)
 		 * @return iterator to inserted vertex
 		 */
-		size_t addVertex(const V & value)
+		size_t addVertex(V value)
 		{
-			Vertex v(total_id, value);
-			return addVertex(std::move(v));
-		}
-
-		/**
-		* Add vertex by moving value
-		* @param value value to be inserted
-		* @return iterator to inserted vertex
-		*/
-		size_t addVertex(V && value)
-		{
-			Vertex v(total_id, std::move(value));
-			return addVertex(std::move(v));
+			auto toReturn = vertices.emplace(std::make_pair(total_id, Vertex(total_id, std::move(value))));
+			total_id++;
+			return toReturn.first->first;
 		}
 
 		/**
@@ -506,10 +449,6 @@ namespace Graph
 				{
 					if(!includeUndirEdgesTwice && !directed)
 					{
-						/*if(std::find(result.begin(), result.end(), std::make_pair(edge.first, vert.first)) != result.end())
-						{
-							continue;
-						}*/
 						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
 						{
 							continue;
@@ -536,10 +475,6 @@ namespace Graph
 				{
 					if(!includeUndirEdgesTwice && !directed)
 					{
-						/*if(std::find(result.begin(), result.end(), std::make_tuple(edge.first, vert.first, edge.second))!= result.end())
-						{
-							continue;
-						}*/
 						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
 						{
 							continue;
@@ -581,25 +516,21 @@ namespace Graph
 			}
 			return vertices.find(vertex)->second.value;
 		}
-
+		
 		/**
 		* Set value of given vertex
 		* @param vertex id of vertex
-		* @return nothing
+		* @return true if value was successfully set, false otherwise
 		*/
-		void setVertexValue(size_t vertex, const V & value)
+		bool setVertexValue(size_t vertex, V value)
 		{
-			_setVertexValue(vertex, value);
-		}
-
-		/**
-		* Set value of given vertex
-		* @param vertex id of vertex
-		* @return nothing
-		*/
-		void setVertexValue(size_t vertex, V && value)
-		{
-			_setVertexValue(vertex, std::move(value));
+			auto is_in = vertices.find(vertex);
+			if (is_in != vertices.end())
+			{
+				is_in->second.value = std::move(value);
+				return true;
+			}
+			return false;
 		}
 
 		/**
@@ -711,53 +642,6 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
-
-		/**
-		* Template update value of edge
-		* @param from vertex from
-		* @param to vertex to
-		* @param value new value of edge
-		* @return nothing
-		*/
-		template <typename X> void _updateEdgeValue(const size_t & from, const size_t & to, X && value)
-		{
-			auto vertex_from = vertices.find(from);
-			if (vertex_from != vertices.end())
-			{
-				if (vertices.find(to) != vertices.end())
-				{
-					auto edgeto = vertex_from->second.outgoingEdges.find(to);
-					if (edgeto != vertex_from->second.outgoingEdges.end())
-					{
-						vertex_from->second.outgoingEdges.find(to)->second = std::forward<X>(value);
-					}
-				}
-			}
-			return;
-		}
-
-		/**
-		* Template add edge
-		* @param from vertex from edge is leaving, must be in graph
-		* @param to vertex to edge is coming, must be in graph
-		* @param value value of edge
-		* @return nothing
-		*/
-		template<typename X> void _addEdge(size_t from, size_t to, X && value)
-		{
-			auto is_in_from = vertices.find(from);
-			auto is_in_to = vertices.find(to);
-			if (is_in_from == vertices.end() || is_in_to == vertices.end())
-			{
-				return;
-			}
-
-			vertices.find(from)->second.outgoingEdges.emplace(std::make_pair( to, std::forward<X>(value) ));
-			if (!directed)
-			{
-				vertices.find(to)->second.outgoingEdges.emplace(std::make_pair( from, std::forward<X>(value) ));
-			}
-		}
 	public:
 		/**
 		* Orientation constructor
@@ -780,21 +664,20 @@ namespace Graph
 		* @param value value of edge
 		* @return nothing
 		*/
-		void addEdge(size_t from, size_t to, const E & value)
+		void addEdge(size_t from, size_t to, E value)
 		{
-			_addEdge(from, to, value);
-		}
+			auto is_in_from = vertices.find(from);
+			auto is_in_to = vertices.find(to);
+			if (is_in_from == vertices.end() || is_in_to == vertices.end())
+			{
+				return;
+			}
 
-		/**
-		* Add edge by moving value
-		* @param from vertex from edge is leaving, must be in graph
-		* @param to vertex to edge is coming, must be in graph
-		* @param value value of edge
-		* @return nothing
-		*/
-		void addEdge(size_t from, size_t to, E && value)
-		{
-			_addEdge(from, to, std::move(value));
+			vertices.find(from)->second.outgoingEdges.emplace(std::make_pair( to, directed ? std::move(value) : value ));
+			if (!directed)
+			{
+				vertices.find(to)->second.outgoingEdges.emplace(std::make_pair( from, std::move(value) ));
+			}
 		}
 
 		/**
@@ -838,29 +721,35 @@ namespace Graph
 			return const_cast<E&>(constMe.getEdgeValue(from, to));
             //http://stackoverflow.com/questions/123758/how-do-i-remove-code-duplication-between-similar-const-and-non-const-member-func
 		}
-
+		
 		/**
 		* Update value of edge
 		* @param from vertex from
 		* @param to vertex to
 		* @param value new value of edge
-		* @return nothing
+		* @return true if edge was found and updated, false otherwise
 		*/
-		void updateEdgeValue(size_t from, size_t to, const E & value)
+		bool updateEdgeValue(size_t from, size_t to, E value)
 		{
-			_updateEdgeValue(from, to, value);
-		}
-
-		/**
-		* Update value of edge
-		* @param from vertex from
-		* @param to vertex to
-		* @param move value new value of edge
-		* @return nothing
-		*/
-		void updateEdgeValue(size_t from, size_t to, E && value)
-		{
-			_updateEdgeValue(from, to, std::move(value));
+			auto vertex_from = vertices.find(from);
+			if (vertex_from != vertices.end())
+			{
+				auto vertex_to = vertices.find(to);
+				if (vertex_to != vertices.end())
+				{
+					auto edgeto = vertex_from->second.outgoingEdges.find(to);
+					if (edgeto != vertex_from->second.outgoingEdges.end())
+					{
+						vertex_from->second.outgoingEdges.find(to)->second = directed ? std::move(value) : value;
+						if(!directed)
+						{
+							vertex_to->second.outgoingEdges.find(from)->second = std::move(value);
+						}
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 
 		/**

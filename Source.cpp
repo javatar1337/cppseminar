@@ -67,6 +67,9 @@ void basicGraphFunctions()
 	graph.addEdge(praha, pardubice, 124);
 	graph.addEdge(pardubice, brno, 147);
 	
+	graph.setVertexValue(brno, "BRNO");
+	std::cout << graph.updateEdgeValue(praha, brno, 204) << std::endl;
+	
 	std::cout << "-- UNDIR GRAPH --" << std::endl;
 	graph.listVerticesToStream();
 	graph.listEdgesToStream();
@@ -87,6 +90,9 @@ void basicGraphFunctions()
 	digraph.addEdge(ostrava, pardubice, 233);
 	digraph.addEdge(praha, pardubice, 124);
 	digraph.addEdge(pardubice, brno, 147);
+	
+	digraph.setVertexValue(brno, "BRNO");
+	std::cout << digraph.updateEdgeValue(praha, brno, 204) << std::endl;
 	
 	std::cout << "-- DIGRAPH --" << std::endl;
 	digraph.listVerticesToStream();
@@ -165,7 +171,7 @@ void bfsDfsOperations()
 	DFS(graph, pardubice, [](auto vertex)
 	{
 		std::cout << "Vertex: " << vertex << std::endl;
-	}, [](auto vertex)
+	}, [](auto)
 	{
 		return;
 	});
