@@ -88,11 +88,20 @@ namespace Graph
 			:directed(directed)
 		{}
 
-		/**
-		* Destructor
-		*/
-		virtual ~AbstractGraph()
-		{}
+
+		AbstractGraph& operator=(AbstractGraph rhs)
+		{
+			if(directed != rhs.directed)
+			{
+				throw std::invalid_argument("Graphs' orientation must be equal.");
+			}
+			
+			using std::swap;
+			swap(vertices, rhs.vertices);
+			swap(total_id, rhs.total_id);
+			
+			return *this;
+		}
 
 		/**
 		* Add vertex
@@ -384,6 +393,12 @@ namespace Graph
 			return true;
 		}
 	public:
+		/**
+		* Destructor
+		*/
+		virtual ~AbstractGraph()
+		{}
+		
 		/**
 		 * Add vertex by value reference
 		 * @param value value to be inserted
@@ -682,9 +697,6 @@ namespace Graph
 		// usings are utilized here to avoid writing this->... every time
 		using AbstractGraph<V,E>::vertices;
 		using AbstractGraph<V,E>::directed;
-
-		template<typename TV, typename TE>
-		friend class Graph;
 
 		/**
 		* Template update value of edge
