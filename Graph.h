@@ -87,17 +87,32 @@ namespace Graph
 			:directed(directed)
 		{}
 
+		AbstractGraph(const AbstractGraph&) = default;
+		
+		AbstractGraph(AbstractGraph&&) = default;
 
-		AbstractGraph& operator=(AbstractGraph rhs)
+		AbstractGraph& operator=(const AbstractGraph& rhs)
 		{
 			if(directed != rhs.directed)
 			{
 				throw std::invalid_argument("Graphs' orientation must be equal.");
 			}
 			
-			using std::swap;
-			swap(vertices, rhs.vertices);
-			swap(total_id, rhs.total_id);
+			vertices = rhs.vertices;
+			total_id = rhs.total_id;
+			
+			return *this;
+		}
+		
+		AbstractGraph& operator=(AbstractGraph&& rhs)
+		{
+			if(directed != rhs.directed)
+			{
+				throw std::invalid_argument("Graphs' orientation must be equal.");
+			}
+			
+			vertices = std::move(rhs.vertices);
+			total_id = std::move(rhs.total_id);
 			
 			return *this;
 		}
@@ -307,7 +322,7 @@ namespace Graph
 		 * @return true if export was successful
 		 */
 		template<typename Func>
-		bool _exportToDot(const std::string& filePath, Func f)
+		bool _exportToDot(const std::string& filePath, Func f) const
 		{
 			std::ofstream outputFile(filePath);
 			std::vector<std::pair<size_t, size_t>> exportedPairs;
@@ -596,6 +611,9 @@ namespace Graph
 			return result;
 		}
 
+		virtual bool exportToDot(const std::string&, const std::vector<size_t>&) const = 0;
+		virtual bool exportToDot(const std::string&, const std::vector<std::pair<size_t, size_t>>&) const = 0;
+
 		bool operator==(const AbstractGraph& rhs) const
 		{
 			return this->directed == rhs.directed && this->vertices == rhs.vertices;
@@ -830,7 +848,7 @@ namespace Graph
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
 		 */
-		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>())
+		virtual bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>()) const override
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
 			{
@@ -861,7 +879,7 @@ namespace Graph
 		 * @param colorEdgesBetween vector of edges pairs which will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
-		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges)
+		virtual bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges) const override
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
 			{
@@ -991,7 +1009,7 @@ namespace Graph
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
 		 */
-		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>())
+		virtual bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>()) const override
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto&, auto& startVertex, auto& endVertex)
 			{
@@ -1017,7 +1035,7 @@ namespace Graph
 		 * @param colorEdgesBetween vector of edges pairs which will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
-		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges)
+		virtual bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges) const override
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto&, auto& startVertex, auto& endVertex)
 			{
@@ -1065,4 +1083,8 @@ namespace Graph
 		}
 #endif
 	};
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8f9f9d2729459e018bda47ad1f2a12d5a738d540
