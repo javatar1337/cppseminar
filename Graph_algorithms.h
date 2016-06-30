@@ -146,7 +146,7 @@ namespace Graph
 		* @return map, where key = id and value = value of given vertex
 		*/
 		template<typename V, typename E>
-		std::map<size_t, V> getVerticesMap(const AbstractGraph<V,E>& graph)
+		std::map<size_t, V> getVerticesMap(const GraphBase<V,E>& graph)
 		{
 			auto ids = graph.getVerticesIds();
 			std::map<size_t, V> result;
@@ -162,7 +162,7 @@ namespace Graph
 		 * @return map, where key = id and value = default constructed template parameter
 		 */
 		template<typename T, typename V, typename E>
-		std::map<size_t, T> getVerticesMap(const AbstractGraph<V,E>& graph)
+		std::map<size_t, T> getVerticesMap(const GraphBase<V,E>& graph)
 		{
 			auto ids = graph.getVerticesIds();
 			std::map<size_t, T> result;
@@ -182,7 +182,7 @@ namespace Graph
 	* @param postorder unary function
 	*/
 	template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
-	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
+	void dfs(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
 	{
 		std::map<size_t, bool> discovered;
 		auto vertmap = helper::getVerticesMap(graph);
@@ -208,7 +208,7 @@ namespace Graph
 	*/
 	template<typename V, typename E, typename UnaryFunction>
 	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>>
-	BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
+	bfs(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
 		std::map<size_t, size_t> distance;
 		std::map<size_t, size_t> parent;

@@ -30,7 +30,7 @@ namespace Graph
 	 * Classes declarations
 	 */
 	template<typename V, typename E>
-	class AbstractGraph;
+	class GraphBase;
 
 	template<typename V, typename E = Unweight>
 	class Graph;
@@ -39,16 +39,16 @@ namespace Graph
 	class Graph<U, Unweight>;
 
 	/**
-	 * Abstract Graph class
+	 * Base Graph class
 	 */
 	template<typename V, typename E>
-	class AbstractGraph
+	class GraphBase
 	{
 	protected:
 		/**
 		 * Vertex struct
 		 * 
-		 * Just simple "value-holder" which is visible only to AbstractGraph and derived classes
+		 * Just simple "value-holder" which is visible only to GraphBase and derived classes
 		 */
 		struct Vertex
 		{
@@ -83,15 +83,15 @@ namespace Graph
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
-		AbstractGraph(bool directed = true)
+		GraphBase(bool directed = true)
 			:directed(directed)
 		{}
 
-		AbstractGraph(const AbstractGraph&) = default;
+		GraphBase(const GraphBase&) = default;
 		
-		AbstractGraph(AbstractGraph&&) = default;
+		GraphBase(GraphBase&&) = default;
 
-		AbstractGraph& operator=(const AbstractGraph& rhs)
+		GraphBase& operator=(const GraphBase& rhs)
 		{
 			if(directed != rhs.directed)
 			{
@@ -104,7 +104,7 @@ namespace Graph
 			return *this;
 		}
 		
-		AbstractGraph& operator=(AbstractGraph&& rhs)
+		GraphBase& operator=(GraphBase&& rhs)
 		{
 			if(directed != rhs.directed)
 			{
@@ -416,7 +416,7 @@ namespace Graph
 		/**
 		* Destructor
 		*/
-		virtual ~AbstractGraph()
+		virtual ~GraphBase()
 		{}
 		
 		/**
@@ -604,15 +604,12 @@ namespace Graph
 			return result;
 		}
 
-		virtual bool exportToDot(const std::string&, const std::vector<size_t>&) const = 0;
-		virtual bool exportToDot(const std::string&, const std::vector<std::pair<size_t, size_t>>&) const = 0;
-
-		bool operator==(const AbstractGraph& rhs) const
+		bool operator==(const GraphBase& rhs) const
 		{
 			return this->directed == rhs.directed && this->vertices == rhs.vertices;
 		}
 
-		bool operator!=(const AbstractGraph& rhs) const
+		bool operator!=(const GraphBase& rhs) const
 		{
 			return !(*this == rhs);
 		}
@@ -646,20 +643,20 @@ namespace Graph
 	 * Graph class
 	 */
 	template<typename V, typename E>
-	class Graph : public AbstractGraph<V,E>
+	class Graph : public GraphBase<V,E>
 	{
 	private:
-		// As vars derived from AbstractGraph have dependent names,
+		// As vars derived from GraphBase have dependent names,
 		// usings are utilized here to avoid writing this->... every time
-		using AbstractGraph<V,E>::vertices;
-		using AbstractGraph<V,E>::directed;
+		using GraphBase<V,E>::vertices;
+		using GraphBase<V,E>::directed;
 	public:
 		/**
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
 		Graph(bool directed = true)
-			:AbstractGraph<V,E>(directed)
+			:GraphBase<V,E>(directed)
 		{}
 
 		/**
@@ -841,7 +838,7 @@ namespace Graph
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
 		 */
-		virtual bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>()) const override
+		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>()) const
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
 			{
@@ -872,7 +869,7 @@ namespace Graph
 		 * @param colorEdgesBetween vector of edges pairs which will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
-		virtual bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges) const override
+		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges) const
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto& e, auto& startVertex, auto& endVertex)
 			{
@@ -930,18 +927,18 @@ namespace Graph
 	 * Graph class specialization for unweighted graphs
 	 */
 	template<typename V>
-	class Graph<V, Unweight> : public AbstractGraph<V, Unweight>
+	class Graph<V, Unweight> : public GraphBase<V, Unweight>
 	{
 	private:
-		using AbstractGraph<V,Unweight>::vertices;
-		using AbstractGraph<V,Unweight>::directed;
+		using GraphBase<V,Unweight>::vertices;
+		using GraphBase<V,Unweight>::directed;
 	public:
 		/**
 		* Orientation constructor
 		* @param directed true for directed, false undirected
 		*/
 		Graph(bool directed = true)
-			:AbstractGraph<V, Unweight>(directed)
+			:GraphBase<V, Unweight>(directed)
 		{}
 
 		/**
@@ -1002,7 +999,7 @@ namespace Graph
 		 * @param colorEdgesBetween path of ids of vertices whose between edges will be coloured (each vertex must be contained only once)
 		 * @return true if export was sucessful, false otherwise
 		 */
-		virtual bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>()) const override
+		bool exportToDot(const std::string& filePath, const std::vector<size_t>& colorEdgesBetween = std::vector<size_t>()) const
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto&, auto& startVertex, auto& endVertex)
 			{
@@ -1028,7 +1025,7 @@ namespace Graph
 		 * @param colorEdgesBetween vector of edges pairs which will be coloured
 		 * @return true if export was sucessful, false otherwise
 		 */
-		virtual bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges) const override
+		bool exportToDot(const std::string& filePath, const std::vector<std::pair<size_t, size_t>>& colorEdges) const
 		{
 			return this->_exportToDot(filePath, [&, this](auto& outputFile, auto&, auto& startVertex, auto& endVertex)
 			{

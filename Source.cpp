@@ -162,13 +162,13 @@ void bfsDfsOperations()
 	graph.addEdge(praha, karlovyVary, 127);
 	
 	std::cout << "-- BFS --" << std::endl;
-	BFS(graph, pardubice, [](auto vertex)
+	bfs(graph, pardubice, [](auto vertex)
 	{
 		std::cout << "Vertex: " << vertex << std::endl;
 	});
 	
 	std::cout << "-- DFS --" << std::endl;
-	DFS(graph, pardubice, [](auto vertex)
+	dfs(graph, pardubice, [](auto vertex)
 	{
 		std::cout << "Vertex: " << vertex << std::endl;
 	}, [](auto)
@@ -191,7 +191,7 @@ void bfsDfsOperations()
 	graph2.addEdge(vv4, vv5, 1);
 	graph2.addEdge(vv5, vv6, 1);
 	graph2.addEdge(vv7, vv6, 1);
-	DFS(graph2, vv1
+	dfs(graph2, vv1
 		, [](auto vertex)
 	{
 		std::cout << "Preorder Vertex: " << vertex << std::endl;
