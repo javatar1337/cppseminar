@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Graph.h"
 #include <stack>
 #include <queue>
 #include <map>
@@ -9,6 +8,8 @@
 #include <utility>
 #include <tuple>
 #include <memory>
+#include "Graph.h"
+#include "heap.h"
 
 namespace Graph
 {
@@ -395,7 +396,7 @@ namespace Graph
 	*/
 	template<typename V, typename E>
 	std::pair<std::map<size_t, E>, std::map<size_t, size_t>>
-	dijkstraAll(const Graph<V, E>& graph, size_t source, E infinity = std::numeric_limits<E>::max())
+	dijkstraAll(const Graph<V, E>& graph, size_t source, E infinity)
 	{
 		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
 		
@@ -404,7 +405,8 @@ namespace Graph
 		{
 			throw std::invalid_argument("source vertex id not found");
 		}
-		std::set<size_t> vertex_queue;
+		Heap<std::pair<size_t,E>, helper::CompareSecond<E>> vertex_queue;
+		std::map<size_t, Heap<std::pair<size_t, E>, helper::CompareSecond<E>>::Handle> id_handle_map;
 		std::map<size_t, E> distance = helper::getVerticesMap<E>(graph);
 		std::map<size_t, size_t> predecessors = helper::getVerticesMap<size_t>(graph);
 		auto graphEdges = graph.getEdgesPositions();
@@ -418,31 +420,27 @@ namespace Graph
 		{
 			p.second = p.first;
 		}
+		
+		distance.at(source) = E();
+
 		for (auto & v : vertices)
 		{
-			vertex_queue.insert(v.first);
+			auto h = vertex_queue.insert(std::make_pair(v.first, distance.at(v.first)));
+			id_handle_map.emplace(v.first, h);
 		}
-		distance.at(source) = E();
 
 		while (!vertex_queue.empty())
 		{
-			std::priority_queue<std::pair<size_t, E>, std::vector<std::pair<size_t, E>>, helper::CompareSecond<E>> vqm;
-			for (auto & y : vertex_queue)
-			{
-				vqm.emplace(y, distance.at(y));
-			}
-			size_t u = vqm.top().first;
-			vertex_queue.erase(u);
+			size_t u = vertex_queue.top().first;
+			vertex_queue.pop();
 			for (auto & w : graph.getNeighbours(u))
 			{
-				if (vertex_queue.find(w) != vertex_queue.end())
+				E alt = (distance.at(u) != infinity)? (distance.at(u) + graph.getEdgeValue(u, w)) : infinity;
+				if (alt < distance.at(w))
 				{
-					E alt = (distance.at(u) != infinity)? (distance.at(u) + graph.getEdgeValue(u, w)) : infinity;
-					if (alt < distance.at(w))
-					{
-						distance.at(w) = alt;
-						predecessors.at(w) = u;
-					}
+					distance.at(w) = alt;
+					predecessors.at(w) = u;
+					vertex_queue.update(id_handle_map.at(w), std::make_pair(w, alt));
 				}
 			}
 		}
