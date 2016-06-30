@@ -406,7 +406,7 @@ namespace Graph
 			throw std::invalid_argument("source vertex id not found");
 		}
 		Heap<std::pair<size_t,E>, helper::CompareSecond<E>> vertex_queue;
-		std::map<size_t, Heap<std::pair<size_t, E>, helper::CompareSecond<E>>::Handle> id_handle_map;
+		std::map<size_t, typename Heap<std::pair<size_t, E>, helper::CompareSecond<E>>::Handle> id_handle_map;
 		std::map<size_t, E> distance = helper::getVerticesMap<E>(graph);
 		std::map<size_t, size_t> predecessors = helper::getVerticesMap<size_t>(graph);
 		auto graphEdges = graph.getEdgesPositions();

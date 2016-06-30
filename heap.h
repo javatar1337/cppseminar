@@ -42,7 +42,7 @@ namespace Graph {
 
 		
 		template<typename V, typename E>
-		friend std::pair<std::map<size_t, E>, std::map<size_t, size_t>> Graph::dijkstraAll(const Graph<V, E>& graph, size_t source, E infinity);
+		friend std::pair<std::map<size_t, E>, std::map<size_t, size_t>> Graph::dijkstraAll(const Graph::Graph<V, E>& graph, size_t source, E infinity);
 		
 		using value_type = T;
 
