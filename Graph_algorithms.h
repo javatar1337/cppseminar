@@ -145,7 +145,7 @@ namespace Graph
 		* @return map, where key = id and value = value of given vertex
 		*/
 		template<typename V, typename E>
-		std::map<size_t, V> getVerticesMap(const AbstractGraph<V,E>& graph)
+		std::map<size_t, V> getVerticesMap(const GraphBase<V,E>& graph)
 		{
 			auto ids = graph.getVerticesIds();
 			std::map<size_t, V> result;
@@ -161,7 +161,7 @@ namespace Graph
 		 * @return map, where key = id and value = default constructed template parameter
 		 */
 		template<typename T, typename V, typename E>
-		std::map<size_t, T> getVerticesMap(const AbstractGraph<V,E>& graph)
+		std::map<size_t, T> getVerticesMap(const GraphBase<V,E>& graph)
 		{
 			auto ids = graph.getVerticesIds();
 			std::map<size_t, T> result;
