@@ -181,7 +181,7 @@ namespace Graph
 	* @param postorder unary function
 	*/
 	template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
-	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
+	void dfs(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
 	{
 		std::map<size_t, bool> discovered;
 		auto vertmap = helper::getVerticesMap(graph);
@@ -207,7 +207,7 @@ namespace Graph
 	*/
 	template<typename V, typename E, typename UnaryFunction>
 	std::pair<std::map<size_t, size_t>, std::map<size_t, size_t>>
-	BFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
+	bfs(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction f)
 	{
 		std::map<size_t, size_t> distance;
 		std::map<size_t, size_t> parent;
