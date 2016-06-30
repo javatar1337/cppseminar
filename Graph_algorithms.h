@@ -138,6 +138,39 @@ namespace Graph
 			postorder(graph.getVertexValue(starting_vertex));
 			return;
 		}
+		
+
+		/**
+		*  Get pairs of <id, value> of vertices
+		* @return map, where key = id and value = value of given vertex
+		*/
+		template<typename V, typename E>
+		std::map<size_t, V> getVerticesMap(const AbstractGraph<V,E>& graph)
+		{
+			auto ids = graph.getVerticesIds();
+			std::map<size_t, V> result;
+			for (auto& vert : ids)
+			{
+				result.emplace(vert, graph.getVertexValue(vert));
+			}
+			return result;
+		}
+
+		/**
+		 * Returns map with vertices ids as keys and default constructed element T as value
+		 * @return map, where key = id and value = default constructed template parameter
+		 */
+		template<typename T, typename V, typename E>
+		std::map<size_t, T> getVerticesMap(const AbstractGraph<V,E>& graph)
+		{
+			auto ids = graph.getVerticesIds();
+			std::map<size_t, T> result;
+			for (auto& vert: ids)
+			{
+				result.emplace(vert, T());
+			}
+			return result;
+		}
 	}
 
 	/**
@@ -151,12 +184,12 @@ namespace Graph
 	void DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder)
 	{
 		std::map<size_t, bool> discovered;
-		auto vertmap = graph.getVerticesMap();
+		auto vertmap = helper::getVerticesMap(graph);
 		if (vertmap.find(starting_vertex) == vertmap.end())
 		{
 			return;
 		}
-		for (auto & ver : graph.getVerticesMap())
+		for (auto & ver : vertmap)
 		{
 			discovered.emplace(ver.first, false);
 		}
@@ -178,12 +211,12 @@ namespace Graph
 	{
 		std::map<size_t, size_t> distance;
 		std::map<size_t, size_t> parent;
-		auto vertmap = graph.getVerticesMap();
+		auto vertmap = helper::getVerticesMap(graph);
 		if (vertmap.find(starting_vertex) == vertmap.end())
 		{
 			return {distance, parent};
 		}
-		for (auto & ver : graph.getVerticesMap())
+		for (auto & ver : vertmap)
 		{
 			distance.emplace(ver.first, std::numeric_limits<size_t>::max());
 			parent.emplace(ver.first, ver.first);
@@ -222,8 +255,8 @@ namespace Graph
 	{
 		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
 		
-		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
-		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
+		std::map<size_t, E> distance = helper::getVerticesMap<E>(graph);
+		std::map<size_t, size_t> predecessors = helper::getVerticesMap<size_t>(graph);
 		auto graphEdges = graph.getEdgesPositions(true);
 
 		for(auto& d : distance)
@@ -336,7 +369,7 @@ namespace Graph
 			return std::get<2>(a) < std::get<2>(b);
 		} );
 
-		helper::UnionFind uf(graph.getVerticesMap());
+		helper::UnionFind uf(helper::getVerticesMap(graph));
 
 		for(auto& edge : edges)
 		{
@@ -366,14 +399,14 @@ namespace Graph
 	{
 		static_assert(std::is_default_constructible<E>::value, "Edge type must be default constructible.");
 		
-		auto vertices = graph.getVerticesMap();
+		auto vertices = helper::getVerticesMap(graph);
 		if (vertices.find(source) == vertices.end())
 		{
 			throw std::invalid_argument("source vertex id not found");
 		}
 		std::set<size_t> vertex_queue;
-		std::map<size_t, E> distance = graph.template getVerticesMap<E>();
-		std::map<size_t, size_t> predecessors = graph.template getVerticesMap<size_t>();
+		std::map<size_t, E> distance = helper::getVerticesMap<E>(graph);
+		std::map<size_t, size_t> predecessors = helper::getVerticesMap<size_t>(graph);
 		auto graphEdges = graph.getEdgesPositions();
 
 		for (auto & d : distance)
@@ -488,7 +521,7 @@ namespace Graph
 	template<typename V, typename E>
 	std::set<std::pair<size_t, size_t>> prim(const Graph<V, E>& graph)
 	{
-		auto graphvertices = graph.getVerticesMap();
+		auto graphvertices = helper::getVerticesMap(graph);
 		size_t source = (*(graphvertices.begin())).first;
 		return prim(graph, source);
 	}

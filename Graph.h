@@ -450,35 +450,6 @@ namespace Graph
 		}
 
 		/**
-		*  Get pairs of <id, value> of vertices
-		* @return map, where key = id and value = value of given vertex
-		*/
-		std::map<size_t, V> getVerticesMap() const
-		{
-			std::map<size_t, V> result;
-			for (auto& vert : vertices)
-			{
-				result.emplace(vert.first, vert.second.value);
-			}
-			return result;
-		}
-
-		/**
-		 * Returns map with vertices ids as keys and default constructed element T as value
-		 * @return map, where key = id and value = default constructed template parameter
-		 */
-		template<typename T>
-		std::map<size_t, T> getVerticesMap() const
-		{
-			std::map<size_t, T> result;
-			for (auto& vert: vertices)
-			{
-				result.emplace(vert.first, T());
-			}
-			return result;
-		}
-
-		/**
 		 * Returns position of edges in format {from, to} vertex id
 		 * @param includeUndirEdgesTwice if set to true, each edge in undirected graph will be included twice
 		 * @return vector of <source vertex, end vertex> pairs
@@ -519,6 +490,23 @@ namespace Graph
 				throw std::invalid_argument("vertex id not found");
 			}
 			return vertices.find(source)->second.outgoingEdges;
+		}
+
+		/**
+		 * Returns vector with ids of all vertices in graph
+		 * @return vector of vertices' ids
+		 */
+		std::vector<size_t> getVerticesIds() const
+		{
+			std::vector<size_t> result;
+			result.reserve(vertices.size());
+			
+			for(auto& vert : vertices)
+			{
+				result.emplace_back(vert.first);
+			}
+			
+			return result;
 		}
 
 		/**
