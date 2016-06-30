@@ -49,9 +49,9 @@ namespace Graph
 			{
 				for(auto& a : vertices)
 				{
-					auto it = mVertices.emplace(std::make_pair(a, nullptr));
+					auto it = mVertices.emplace(a, nullptr);
 					it.first->second = std::make_unique<Node>(it.first);
-					mSetSizes.emplace(std::make_pair(a, 1));
+					mSetSizes.emplace(a, 1);
 				}
 			}
 
@@ -60,9 +60,9 @@ namespace Graph
 			{
 				for(auto& a : verticesMap)
 				{
-					auto it = mVertices.emplace(std::make_pair(a.first, nullptr));
+					auto it = mVertices.emplace(a.first, nullptr);
 					it.first->second = std::make_unique<Node>(it.first);
-					mSetSizes.emplace(std::make_pair(a.first, 1));
+					mSetSizes.emplace(a.first, 1);
 				}
 			}
 
@@ -127,13 +127,13 @@ namespace Graph
 		* @param postorder unary function
 		*/
 		template<typename V, typename E, typename UnaryFunction1, typename UnaryFunction2>
-		void _DFS(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder, std::map<size_t, bool> & discovered)
+		void _dfs(Graph<V, E> & graph, size_t starting_vertex, UnaryFunction1 preorder, UnaryFunction2 postorder, std::map<size_t, bool> & discovered)
 		{
 			discovered.find(starting_vertex)->second = true;
 			preorder(graph.getVertexValue(starting_vertex));
 			for (auto & v : graph.getNeighbours(starting_vertex))
 			{
-				if(!discovered.find(v)->second) _DFS(graph, v, preorder, postorder, discovered);
+				if(!discovered.find(v)->second) _dfs(graph, v, preorder, postorder, discovered);
 			}
 			postorder(graph.getVertexValue(starting_vertex));
 			return;
@@ -158,9 +158,9 @@ namespace Graph
 		}
 		for (auto & ver : graph.getVerticesMap())
 		{
-			discovered.emplace(std::make_pair(ver.first, false));
+			discovered.emplace(ver.first, false);
 		}
-		helper::_DFS(graph, starting_vertex, preorder, postorder, discovered);
+		helper::_dfs(graph, starting_vertex, preorder, postorder, discovered);
 
 		return;
 	}
@@ -185,8 +185,8 @@ namespace Graph
 		}
 		for (auto & ver : graph.getVerticesMap())
 		{
-			distance.emplace(std::make_pair(ver.first, std::numeric_limits<size_t>::max()));
-			parent.emplace(std::make_pair(ver.first, ver.first));
+			distance.emplace(ver.first, std::numeric_limits<size_t>::max());
+			parent.emplace(ver.first, ver.first);
 		}
 		std::queue<size_t> vertex_queue;
 		vertex_queue.push(starting_vertex);
@@ -342,7 +342,7 @@ namespace Graph
 		{
 			if(uf.find(std::get<0>(edge)) != uf.find(std::get<1>(edge)))
 			{
-				result.emplace_back(std::make_pair(std::get<0>(edge), std::get<1>(edge)));
+				result.emplace_back(std::get<0>(edge), std::get<1>(edge));
 				uf.unionSets(std::get<0>(edge), std::get<1>(edge));
 			}
 		}
@@ -396,7 +396,7 @@ namespace Graph
 			std::priority_queue<std::pair<size_t, E>, std::vector<std::pair<size_t, E>>, helper::CompareSecond<E>> vqm;
 			for (auto & y : vertex_queue)
 			{
-				vqm.emplace(std::make_pair(y, distance.at(y)));
+				vqm.emplace(y, distance.at(y));
 			}
 			size_t u = vqm.top().first;
 			vertex_queue.erase(u);
@@ -467,7 +467,7 @@ namespace Graph
 			auto vedges = graph.getEdgesFrom(v);
 			for (auto & w : vedges)
 			{
-				if (vertices.find(w.first) == vertices.end()) edges.emplace(std::make_tuple(v, w.first, w.second));
+				if (vertices.find(w.first) == vertices.end()) edges.emplace(v, w.first, w.second);
 			}
 			//auto edge = (*std::min_element(edges.begin(), edges.end(), helper::CompareThird<E>()));
 			auto edge = edges.top();
@@ -550,7 +550,7 @@ namespace Graph
 					if(pred.find(e.first) == pred.end() && e.first != source &&
 					        graph.getEdgeValue(curr, e.first) > graphFlow.getEdgeValue(curr, e.first))
 					{
-						pred.emplace(std::make_pair(e.first, curr));
+						pred.emplace(e.first, curr);
 						q.push(e.first);
 					}
 				}

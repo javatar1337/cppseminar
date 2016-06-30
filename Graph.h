@@ -234,7 +234,7 @@ namespace Graph
 
 						fv(ss, vertValue);
 
-						vertices.emplace(std::make_pair(vertId, Vertex(vertId, std::move(vertValue))));
+						vertices.emplace(vertId, Vertex(vertId, std::move(vertValue)));
 
 						if(vertId > total_id)
 						{
@@ -371,7 +371,7 @@ namespace Graph
 
 							f(outputFile, e.second, v.second.id, e.first);
 
-							exportedPairs.emplace_back(std::make_pair(v.second.id, e.first));
+							exportedPairs.emplace_back(v.second.id, e.first);
 							outputFile << ";" << std::endl;
 						}
 					}
@@ -382,6 +382,36 @@ namespace Graph
 
 			return true;
 		}
+		
+		/**
+		 * Base method for returning vector of edges positions (and values)
+		 * @param includeUndirEdgesTwice if true, each edge of undirected graph will be included twice
+		 * @param f function to be applied to result vector, current vertex and current edge
+		 * @return resulting vector
+		 */
+		template<typename T, typename Func>
+		std::vector<T> _getEdgesPositionsBase(bool includeUndirEdgesTwice, Func f) const
+		{
+			std::vector<T> result;
+			std::set<size_t> verIn;
+			for (auto& vert : vertices)
+			{
+				verIn.insert(vert.first);
+				for(auto& edge : vert.second.outgoingEdges)
+				{
+					if(!includeUndirEdgesTwice && !directed)
+					{
+						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
+						{
+							continue;
+						}
+					}
+					f(result, vert, edge);
+				}
+			}
+			return result;
+		}
+		
 	public:
 		/**
 		* Destructor
@@ -396,7 +426,7 @@ namespace Graph
 		 */
 		size_t addVertex(V value)
 		{
-			auto toReturn = vertices.emplace(std::make_pair(total_id, Vertex(total_id, std::move(value))));
+			auto toReturn = vertices.emplace(total_id, Vertex(total_id, std::move(value)));
 			total_id++;
 			return toReturn.first->first;
 		}
@@ -428,7 +458,7 @@ namespace Graph
 			std::map<size_t, V> result;
 			for (auto& vert : vertices)
 			{
-				result.emplace(std::make_pair(vert.first, vert.second.value));
+				result.emplace(vert.first, vert.second.value);
 			}
 			return result;
 		}
@@ -443,7 +473,7 @@ namespace Graph
 			std::map<size_t, T> result;
 			for (auto& vert: vertices)
 			{
-				result.emplace(std::make_pair(vert.first, T()));
+				result.emplace(vert.first, T());
 			}
 			return result;
 		}
@@ -455,24 +485,11 @@ namespace Graph
 		 */
 		std::vector<std::pair<size_t, size_t>> getEdgesPositions(bool includeUndirEdgesTwice = false) const
 		{
-			std::vector<std::pair<size_t, size_t>> result;
-			std::set<size_t> verIn;
-			for (auto& vert : vertices)
+			return _getEdgesPositionsBase<std::pair<size_t, size_t>>(includeUndirEdgesTwice, 
+			[](auto& result, const auto& vert, const auto& edge)
 			{
-				verIn.insert(vert.first);
-				for(auto& edge : vert.second.outgoingEdges)
-				{
-					if(!includeUndirEdgesTwice && !directed)
-					{
-						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
-						{
-							continue;
-						}
-					}
-					result.emplace_back(std::make_pair(vert.first, edge.first));
-				}
-			}
-			return result;
+				result.emplace_back(vert.first, edge.first);
+			});
 		}
 
 		/**
@@ -482,23 +499,11 @@ namespace Graph
 		 */
 		std::vector<std::tuple<size_t, size_t, E>> getEdgesPositionsAndValues(bool includeUndirEdgesTwice = false) const
 		{
-			std::vector<std::tuple<size_t, size_t, E>> result;
-			std::set<size_t> verIn;
-			for (auto& vert : vertices)
+			return _getEdgesPositionsBase<std::tuple<size_t, size_t, E>>(includeUndirEdgesTwice, 
+			[](auto& result, const auto& vert, const auto& edge)
 			{
-				for(auto& edge : vert.second.outgoingEdges)
-				{
-					if(!includeUndirEdgesTwice && !directed)
-					{
-						if ((vert.first != edge.first) && (verIn.find(edge.first) != verIn.end()))
-						{
-							continue;
-						}
-					}
-					result.emplace_back(std::make_tuple(vert.first, edge.first, edge.second));
-				}
-			}
-			return result;
+				result.emplace_back(vert.first, edge.first, edge.second);
+			});
 		}
 
 		/**
@@ -566,7 +571,7 @@ namespace Graph
 		* Remove edge
 		* @param from vertex from
 		* @param to vertex to
-		* @return number edges removed - at most 1
+		* @return number edges removed - 0, 1 or 2 (only in case of undirected graph)
 		*/
 		size_t removeEdge(size_t from, size_t to)
 		{
@@ -691,10 +696,10 @@ namespace Graph
 				return;
 			}
 
-			vertices.find(from)->second.outgoingEdges.emplace(std::make_pair( to, directed ? std::move(value) : value ));
+			vertices.find(from)->second.outgoingEdges.emplace(to, directed ? std::move(value) : value);
 			if (!directed)
 			{
-				vertices.find(to)->second.outgoingEdges.emplace(std::make_pair( from, std::move(value) ));
+				vertices.find(to)->second.outgoingEdges.emplace(from, std::move(value));
 			}
 		}
 
@@ -815,7 +820,7 @@ namespace Graph
 			{
 				E edgeValue;
 				ss >> edgeValue;
-				vertices.rbegin()->second.outgoingEdges.emplace(std::make_pair(targetId, edgeValue));
+				vertices.rbegin()->second.outgoingEdges.emplace(targetId, edgeValue);
 			});
 		}
 
@@ -837,7 +842,7 @@ namespace Graph
 				if(quotePos != std::string::npos && quotePosEnd != quotePos)
 				{
 					result = result.substr(quotePos + 1, quotePosEnd - quotePos - 1);
-					vertices.rbegin()->second.outgoingEdges.emplace({targetId, result});
+					vertices.rbegin()->second.outgoingEdges.emplace(targetId, result);
 				}
 			});
 		}
@@ -973,10 +978,10 @@ namespace Graph
 				return;
 			}
 
-			vertices.find(from)->second.outgoingEdges.emplace({to, u});
+			vertices.find(from)->second.outgoingEdges.emplace(to, u);
 			if (!directed)
 			{
-				vertices.find(to)->second.outgoingEdges.emplace({from, u});
+				vertices.find(to)->second.outgoingEdges.emplace(from, u);
 			}
 		}
 
@@ -999,7 +1004,7 @@ namespace Graph
 		{
 			return this->_loadFromFile(filePath, false, [&, this](auto&, auto& targetId)
 			{
-				vertices.rbegin()->second.outgoingEdges.emplace({targetId, Unweight()});
+				vertices.rbegin()->second.outgoingEdges.emplace(targetId, Unweight());
 			});
 		}
 
