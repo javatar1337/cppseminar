@@ -156,7 +156,7 @@ namespace Graph
 		{
 			return;
 		}
-		for (auto & ver : graph.getVerticesMap())
+		for (auto & ver : vertmap)
 		{
 			discovered.emplace(ver.first, false);
 		}
